@@ -1,0 +1,86 @@
+{
+  "meta": {
+    "what": "時代区分と概説（自社執筆 / written in-house）",
+    "note": "年代は一般的な区分に基づく概数。研究上は境界に諸説があり、ここでは体験のための目安として扱う。",
+    "written_by": "DIGIT (original text, not copied)"
+  },
+  "eras": [
+    {
+      "id": "jomon", "ja": "縄文", "en": "Jōmon", "from": -14000, "to": -300,
+      "label_ja": "縄文時代", "label_en": "Jōmon period",
+      "years_ja": "紀元前14000年頃〜紀元前300年頃", "years_en": "c. 14000 BCE – c. 300 BCE",
+      "summary_ja": "土器と狩猟採集を軸にした長い時代で、人びとは集落を作り、森と海の恵みで暮らした。石や土でつくられた道具や飾りが各地に残る。",
+      "summary_en": "A very long era built around pottery, hunting and gathering, when people settled in villages and lived off forest and sea. Tools and ornaments of stone and clay survive across the islands."
+    },
+    {
+      "id": "yayoi", "ja": "弥生", "en": "Yayoi", "from": -300, "to": 300,
+      "label_ja": "弥生時代", "label_en": "Yayoi period",
+      "years_ja": "紀元前300年頃〜紀元後300年頃", "years_en": "c. 300 BCE – c. 300 CE",
+      "summary_ja": "水田稲作と金属器が広まり、ムラがクニへとまとまっていった。環濠に囲まれた大きな集落は、この時代の緊張と豊かさの両方を物語る。",
+      "summary_en": "Wet-rice farming and metal tools spread, and villages began to merge into small states. Large moated settlements speak of both the wealth and the tension of the age."
+    },
+    {
+      "id": "kofun", "ja": "古墳", "en": "Kofun", "from": 250, "to": 592,
+      "label_ja": "古墳時代", "label_en": "Kofun period",
+      "years_ja": "3世紀中頃〜6世紀末", "years_en": "mid-3rd c. – late 6th c.",
+      "summary_ja": "巨大な墳墓が各地に築かれ、有力者の力が目に見える形で示された。大陸との行き来を通じて技術や信仰も流れ込んだ。",
+      "summary_en": "Huge burial mounds rose across the land, making the power of local rulers visible in earth and stone. Contact with the continent brought in new crafts and beliefs."
+    },
+    {
+      "id": "asuka", "ja": "飛鳥", "en": "Asuka", "from": 592, "to": 710,
+      "label_ja": "飛鳥時代", "label_en": "Asuka period",
+      "years_ja": "592年〜710年", "years_en": "592 – 710",
+      "summary_ja": "仏教が公に受け入れられ、律令にもとづく国のかたちが整えられていった。都と寺院の建設が、新しい国家像を風景に刻んだ。",
+      "summary_en": "Buddhism was formally embraced and a law-based state began to take shape. New capitals and temples wrote that emerging idea of a nation into the landscape."
+    },
+    {
+      "id": "nara", "ja": "奈良", "en": "Nara", "from": 710, "to": 794,
+      "label_ja": "奈良時代", "label_en": "Nara period",
+      "years_ja": "710年〜794年", "years_en": "710 – 794",
+      "summary_ja": "平城京に都が置かれ、碁盤の目の街路と大寺院が広がった。歴史や神話を記した書物が編まれたのもこの時代である。",
+      "summary_en": "The capital settled at Heijō-kyō, with grid streets and great temples. It is also the age in which the earliest surviving chronicles and myth collections were compiled."
+    },
+    {
+      "id": "heian", "ja": "平安", "en": "Heian", "from": 794, "to": 1185,
+      "label_ja": "平安時代", "label_en": "Heian period",
+      "years_ja": "794年〜1185年", "years_en": "794 – 1185",
+      "summary_ja": "京を中心に貴族の文化が花開き、かな文字による文学が育った。一方で地方では武士が力を蓄え、次の時代への流れが生まれた。",
+      "summary_en": "Court culture flowered around the capital, and a literature written in the native kana script took root. In the provinces, meanwhile, warrior houses were quietly gathering strength."
+    },
+    {
+      "id": "kamakura", "ja": "鎌倉", "en": "Kamakura", "from": 1185, "to": 1333,
+      "label_ja": "鎌倉時代", "label_en": "Kamakura period",
+      "years_ja": "1185年〜1333年", "years_en": "1185 – 1333",
+      "summary_ja": "武士による政権が鎌倉に置かれ、朝廷とは別の統治のしくみが動き出した。二度の元の襲来は、列島の防衛を大きく揺さぶった。",
+      "summary_en": "A warrior government took root in Kamakura, running a system of rule parallel to the imperial court. Two Mongol invasion attempts shook the islands' defences."
+    },
+    {
+      "id": "muromachi", "ja": "室町", "en": "Muromachi", "from": 1336, "to": 1573,
+      "label_ja": "室町時代（戦国を含む）", "label_en": "Muromachi period (incl. Sengoku)",
+      "years_ja": "1336年〜1573年", "years_en": "1336 – 1573",
+      "summary_ja": "京の幕府のもとで能や茶の湯などの文化が磨かれた一方、後半は各地の大名が争う戦国の世となった。山城が列島じゅうに築かれた時代でもある。",
+      "summary_en": "Under a shogunate based in Kyoto, arts such as noh and the tea ceremony were refined, while the later half dissolved into the warring-states age. Mountain fortresses spread across the country."
+    },
+    {
+      "id": "azuchimomoyama", "ja": "安土桃山", "en": "Azuchi–Momoyama", "from": 1573, "to": 1603,
+      "label_ja": "安土桃山時代", "label_en": "Azuchi–Momoyama period",
+      "years_ja": "1573年〜1603年", "years_en": "1573 – 1603",
+      "summary_ja": "統一へ向かう三十年で、高くそびえる天守を持つ城が次々と生まれた。金箔や大画面の障壁画にみられる、華やかで大胆な表現が好まれた。",
+      "summary_en": "Three decades of unification, during which castles with tall, dominating keeps appeared one after another. Taste ran to the bold and gilded, seen in gold leaf and large-scale painted screens."
+    },
+    {
+      "id": "edo", "ja": "江戸", "en": "Edo", "from": 1603, "to": 1868,
+      "label_ja": "江戸時代", "label_en": "Edo period",
+      "years_ja": "1603年〜1868年", "years_en": "1603 – 1868",
+      "summary_ja": "長く続いた平和のもとで街道と城下町が整い、出版や芝居など町人の文化がにぎわった。海外との窓口は限られ、独自の成熟が進んだ。",
+      "summary_en": "A long peace let highways and castle towns mature, and townspeople's culture — publishing, theatre, prints — thrived. Contact abroad ran through a few controlled gateways."
+    },
+    {
+      "id": "meiji", "ja": "明治〜", "en": "Meiji onward", "from": 1868, "to": 2026,
+      "label_ja": "明治時代以降", "label_en": "Meiji period and after",
+      "years_ja": "1868年〜現在", "years_en": "1868 – present",
+      "summary_ja": "制度と産業が急速に作り替えられ、多くの城が役目を終えて取り壊された。残った城や史跡は、のちに文化財として守られるようになった。",
+      "summary_en": "Institutions and industry were rebuilt at speed, and many castles lost their purpose and were pulled down. Those that survived were later protected as cultural heritage."
+    }
+  ]
+}

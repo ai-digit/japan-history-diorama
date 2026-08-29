@@ -1,0 +1,2980 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>日本史ジオラマ — Japan History Diorama</title>
+<meta name="description" content="日本列島の立体ジオラマの上に城と史跡を並べ、時代スライダーで歴史をたどる。国土地理院の標高データで起伏を再現。">
+<meta name="application-name" content="日本史ジオラマ">
+<meta name="apple-mobile-web-app-title" content="日本史ジオラマ">
+<meta name="theme-color" content="#fffdf8">
+<!-- OGP相当。画像は外部URLになるため置かない（build/check-html.mjs が外部依存を弾く掟）。
+     内部バージョン表記（prototype / v0）はユーザーの目に触れる面に出さない —— art-direction.md §1。 -->
+<meta property="og:type" content="website">
+<meta property="og:locale" id="og-locale" content="ja_JP">
+<meta property="og:locale:alternate" id="og-locale-alt" content="en_US">
+<meta property="og:site_name" content="日本史ジオラマ">
+<meta property="og:title" content="日本史ジオラマ — Japan History Diorama">
+<meta property="og:description" content="日本列島の立体ジオラマの上に城と史跡を並べ、時代スライダーで歴史をたどる。">
+<meta name="twitter:card" content="summary">
+<!-- 英語面にURLを与える（RINGI-0007 T-8・イシ条件2）。
+     `?lang=en` で英語で起動し、`<html lang>`・canonical・og:locale がその言語に揃う。
+     **href は相対にしてある。** 公開先のホスト名は当社の GitHub アカウント作成後にしか
+     決まらず（オーナー作業・未実施）、いま絶対URLを書けば「たぶんこのURL」を4行に
+     焼き込むことになる。相対 URL はブラウザが文書の位置から解決するので、
+     どのホストへ置いても自己整合する。
+     ※ Google の hreflang は「完全修飾URL」を求めている。公開当日、実URLが確定した時点で
+       この4行を絶対URLへ差し替える手順を LAUNCH-RUNBOOK §9 に置く。
+       その差し替えが `check-html.mjs` の外部URL禁止に触れないよう、
+       `<link rel="canonical"|"alternate">` **だけ**を除外してある（他は今も赤）。 -->
+<link rel="canonical" id="link-canonical" href="./">
+<link rel="alternate" hreflang="ja" href="./">
+<link rel="alternate" hreflang="en" href="./?lang=en">
+<link rel="alternate" hreflang="x-default" href="./">
+<!-- 機械可読なAI標識（REG-007 第4条第4項・附則2-1）。LP（WS-006 `lp/index.html`）と同型の
+     **独自語彙の第一版**であり、EU AI Act 第50条・C2PA 等の標準に準拠したものではない。
+     附則2-1 を「解消済み」とは主張しない——残置を承知で開始してよいかは稟議の判定事項。
+     ld+json に `license` は書かない。本ページは**3層**でライセンスされており
+     （コード=Apache-2.0／解説文=CC BY-ND 4.0／構造化データ=CC BY 4.0）、単一の `license` を
+     名乗ると3層を1つに潰して誤導するからである。線引きの正本は同梱の `LICENSE-DATA.md`。 -->
+<meta name="digit:ai-disclosure" content="ai-generated; no-human-author; no-human-review; human-owner-approves-spending-and-policy">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "日本史ジオラマ — Japan History Diorama",
+  "inLanguage": ["ja", "en"],
+  "creator": { "@type": "Organization", "name": "株式会社DIGIT" },
+  "author": { "@type": "Organization", "name": "DIGIT AI エージェント（人間の著者はいません）" },
+  "accountablePerson": { "@type": "Person", "name": "オーナー（人間・支出/方針の最終承認者）" },
+  "additionalProperty": [
+    { "@type": "PropertyValue", "name": "content-generation", "value": "ai-generated" },
+    { "@type": "PropertyValue", "name": "human-review", "value": "none" },
+    { "@type": "PropertyValue", "name": "human-approval", "value": "owner-approves-spending-and-policy" },
+    { "@type": "PropertyValue", "name": "disclosure-vocabulary", "value": "digit-proprietary-v1; not-eu-ai-act-article-50; not-c2pa" }
+  ]
+}
+</script>
+<style>
+  /* 材質の規範は art-direction.md（§2 3原則・§3 角丸/影/フォント）が正本。
+     ここはその実装であって、規範の置き場所ではない。値を変える前にあちらを読むこと。 */
+  :root{
+    /* 墨は暖色。乳白の和紙に寒色の文字は乗らない（§2 原則2）。 */
+    --ink:#2b2520; --ink-soft:#6b5f52; --ink-faint:#8d8071;
+    --line:rgba(43,37,32,.13);
+    --paper:#fffdf8; --paper-solid:#fffdf8;
+    --accent:#c8543a; --accent-soft:#f3d9d2; --accent-deep:#a03d26;
+    --gold:#d8a13a; --sea:#bfdcea;
+    /* 紙が机に「置かれている」影。ぼかしは14pxを超えない・色は必ず暖色（§3-2）。
+       28pxの広い影は画面に「貼られた」層の記号で、紙のそれではない。 */
+    --shadow:0 1px 2px rgba(70,52,36,.10), 0 5px 14px rgba(70,52,36,.07);
+    --shadow-soft:0 1px 3px rgba(70,52,36,.10);
+    /* 金泥の一本罫。定義だけで一度も使われていなかった --gold の昇格先（§2 原則2）。
+       ドロップシャドウの代わりに「ここが紙の端です」を語らせる。 */
+    --rule-gold:inset 0 2px 0 -1px rgba(216,161,58,.55);
+    --r:2px;    /* 大きな面は直角に裁つ（§3-1） */
+    --r-s:3px;  /* 小さな紙片＝短冊。半径999pxのピル（汎用SaaSの部品）は全廃 */
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    /* 折り返しの見切れ（G-215／art-direction §5-7 ハヤの条件9）。**装飾ではなく機能**である。
+       初期視界の下端にこの帯を残し、次のブロック（#belowfold）の頭を覗かせる。
+       0 にすると「スクロールすれば到達できるが、誰も下があると思わない」配置になり、
+       条件9（到達できることは必要条件であって十分条件ではない）で赤になる。 */
+    --peek: 30px;
+    /* 最初の1画面（＝地図の器・時代バー・カードが載る台）の高さ。**100vh ではない**
+       ——見切れのぶんだけ低い。`svh` は携帯のツールバーが出ている時の高さで、
+       `vh`（畳んだ時の高さ）で組むと見切れが画面の外へ出て消える。
+       `svh` を知らないブラウザには下の @supports が当たらず vh 版が残る。 */
+    --stage-h: calc(100vh - var(--peek));
+    --font: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", YuGothic,
+            "Noto Sans JP", Meiryo, system-ui, -apple-system, "Segoe UI", sans-serif;
+    /* 見出しだけ明朝（§3-3 の4面のみ）。外部フォントは使わずOS同梱書体の連鎖で当てる。 */
+    --serif: "Hiragino Mincho ProN", "Yu Mincho", YuMincho, "Noto Serif JP",
+             "Shippori Mincho", "MS PMincho", "Songti SC", serif;
+  }
+  @supports (height: 100svh){
+    :root{ --stage-h: calc(100svh - var(--peek)); }
+  }
+  *{ box-sizing:border-box; }
+  /* **ここは「解いた」ことに意味がある**（G-202 条件0・シノ §4）。
+     以前は `html,body{overflow:hidden}` と `body{overscroll-behavior:none; touch-action:none}`
+     で、ページから**折り返しの下そのものを消していた**。その状態で出典を下へ送れば、
+     それは「スクロールすれば読める位置」ではなく **「到達できない位置」**になる。
+     だから移設と**同じ変更**で、この3つを外して文書をスクロールできる形へ戻した。
+
+     地図とスクロールの分担（＝共存の設計）:
+       - **キャンバスの上**は地図。OrbitControls が `connect()` で
+         `domElement.style.touchAction='none'` を当て、ホイールは `preventDefault()`
+         するので、絵の上の指もホイールも地図に行き、ページは動かない。
+       - **紙の上**（AI開示・時代バーの板・折り返しの下）は既定の `touch-action:auto`
+         のままなので、指もホイールもスクロールになる。
+     つまり分岐は「いまどこを触っているか」だけで決まる。**モードも切替も持たない**
+     ——押して選ばせる形にした瞬間、到達手段がスクロール以外に増える（条件1）。 */
+  html,body{ margin:0; padding:0; min-height:100%; background:#dfeaf2; }
+  body{
+    font-family:var(--font); color:var(--ink);
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  #scene{ position:fixed; inset:0; display:block; width:100%; height:100%; }
+
+  /* ---------------------------------------------------------------- 上部バー */
+  /* 上段＝AI開示バナー、下段＝題箋と道具。**2段を1つの #topbar に入れてあるのは
+     safeBand() が #topbar の offsetHeight で「絵を置いてよい帯」を決めているから**。
+     バナーを #topbar の外に置くと、列島がバナーの下へ潜って開示が絵に隠れる。 */
+  #topbar{
+    position:fixed; top:0; left:0; right:0; z-index:20;
+    display:flex; flex-direction:column; align-items:stretch;
+    padding:0;
+    pointer-events:none;
+  }
+  #topbar-row{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+    padding:14px 16px 0 16px;
+  }
+
+  /* ------------------------------------------------------------ AI開示バナー */
+  /* REG-007 第4条（AI開示義務）・第5条第2項（記事以外の面の標準文言）の実装。
+     **折りたたみ不可・常時表示**。トグル・details/summary・aria-expanded を置かない
+     ——第4条第3項は「初期状態で折りたたまれた領域」での掲示を開示と認めない。
+     同項は「極端に小さい文字」も認めないので、出典フッタ（9.5px）より大きい 12px を
+     下限とし、モバイルでも 11px までしか下げない（本文は1文字も削らない）。
+     材質は art-direction.md の規範どおり——不透明な和紙・全幅なので角は裁たれている・
+     下辺に金泥の一本罫・墨の文字。**朱は使わない**（朱は「いま選ばれているもの」の色。§2 原則3）。 */
+  #ai-banner{
+    pointer-events:auto;
+    display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 11px;
+    background:var(--paper-solid);
+    border-bottom:1px solid rgba(216,161,58,.55);
+    box-shadow:var(--shadow-soft);
+    padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 8px;
+  }
+  #ai-banner-mark, #ai-banner-mark-en{
+    flex:none; align-self:center;
+    font-size:9.5px; font-weight:700; letter-spacing:.18em; color:var(--ink-soft);
+    border-right:1px solid var(--line); padding-right:11px; white-space:nowrap;
+  }
+  /* 日英2本を**どちらも静的に**置いてあるので、JSが動く時だけ片方を隠す（表示制御のみ）。
+     JSが落ちた画面では2本とも出る——折り返すために flex-basis を与えてある。
+     **CSS では絶対に隠さない**（隠した瞬間に「JSが落ちても開示が残る」が嘘になる）。 */
+  #ai-banner-text, #ai-banner-text-en{
+    margin:0; font-size:12px; line-height:1.65; color:var(--ink); letter-spacing:.01em;
+    flex:1 1 320px;
+  }
+  /* 題箋（だいせん）——巻物の表に貼る題名の紙片。ガラスをやめて不透明な和紙に置き換え、
+     上端に金泥の一本罫を入れる（art-direction.md §2 原則1）。 */
+  #brand{
+    pointer-events:auto;
+    background:var(--paper);
+    border-radius:var(--r); box-shadow:var(--shadow), var(--rule-gold);
+    padding:11px 18px 12px;
+  }
+  #brand h1{ margin:0; font-family:var(--serif); font-size:19px; letter-spacing:.10em; font-weight:600; }
+  #brand p{ margin:4px 0 0; font-size:9.5px; color:var(--ink-faint); letter-spacing:.24em; font-weight:500; }
+  #tools{ pointer-events:auto; display:flex; gap:8px; align-items:center; }
+  /* 短冊。ピル（999px）は汎用SaaSの部品なので全廃し、細い罫を持つ紙片にする（§3-1）。 */
+  .pill{
+    background:var(--paper);
+    border:1px solid var(--line); border-radius:var(--r-s); box-shadow:var(--shadow-soft);
+    font-family:inherit; font-size:12px; font-weight:600; color:var(--ink);
+    padding:8px 14px; cursor:pointer; line-height:1; letter-spacing:.06em;
+    transition:transform .12s ease, background .12s ease, border-color .12s ease;
+  }
+  .pill:hover{ transform:translateY(-1px); border-color:rgba(200,84,58,.45); }
+  .pill:active{ transform:translateY(0); }
+  /* 選択＝朱の塗り（落款・判子の記号）。ただし画面内の朱の塗り面は同時に1〜2個まで。 */
+  .pill[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:var(--paper); }
+  /* 寄っている間だけ「戻る」を強く出す。出口が見えない寄りは、寄りではなく迷子。
+     ただし塗るのは墨——朱は「いま選ばれているもの」の色で、操作の色ではない（§2 原則3）。
+     光輪（発光box-shadow）は使わない——塗りと罫だけで強さを出す（§3-2）。 */
+  .pill.back{ background:var(--ink); border-color:var(--ink); color:var(--paper); box-shadow:var(--shadow-soft); }
+  #langbtn{ min-width:72px; }
+
+  /* ------------------------------------------------------------------ ラベル */
+  #labels{ position:fixed; inset:0; z-index:10; pointer-events:none; }
+  .lbl{
+    position:absolute; top:0; left:0; white-space:nowrap;
+    font-size:12px; font-weight:600; letter-spacing:.04em; line-height:1;
+    color:var(--ink); background:var(--paper);
+    border-radius:var(--r-s); padding:5px 10px 6px;
+    box-shadow:var(--shadow-soft);
+    transform-origin:50% 120%; will-change:transform,opacity;
+    pointer-events:auto; cursor:pointer; user-select:none; -webkit-user-select:none;
+  }
+  .lbl::after{
+    content:""; position:absolute; left:50%; bottom:-4px; width:8px; height:8px;
+    background:inherit; transform:translateX(-50%) rotate(45deg); border-radius:1px;
+  }
+  .lbl.dim{ background:rgba(255,253,248,.62); color:var(--ink-faint); font-weight:500; box-shadow:none; }
+  .lbl.on{ background:var(--accent); color:var(--paper); box-shadow:var(--shadow-soft); }
+  /* 寄っている間、主役以外は静かに退く（Google Earth Voyager から借りた作法。
+     選んでいない場所が同じ強さで主張し続けると、寄った意味が消える）。 */
+  body[data-zoom="1"] .lbl:not(.on){ opacity:.42; font-weight:500; }
+
+  /* ------------------------------------------------------------ インセット */
+  /* 沖縄の別枠。中身は WebGL 側が同じキャンバスの一部として描く（scissor）。
+     ここはその上に重ねる枠と見出しだけ。角丸にすると WebGL の四角い矩形が
+     はみ出して見えるので、地図のインセットらしく直角のままにしてある。 */
+  #inset{
+    position:fixed; left:0; top:0; z-index:14; display:none; pointer-events:none;
+    box-shadow:0 0 0 2px var(--paper), 0 4px 12px rgba(70,52,36,.16);
+  }
+  #inset b{
+    position:absolute; left:0; right:0; bottom:0; height:15px;
+    background:var(--paper); color:var(--ink-soft);
+    font-size:9.5px; font-weight:700; letter-spacing:.14em; text-align:center;
+    padding:3px 0 4px; line-height:1;
+  }
+
+  /* -------------------------------------------------------------- サイドカード */
+  #card{
+    /* 高さは**下の時代バーが要求する高さ**（`--sheet-b` = #erabar の実測高 + 8px）から決める。
+       定数で引くのをやめた理由（G-190）: `calc(100vh - 250px)` は 1280x720 で
+       カード下端 546px・時代バーの板の上端 418px となり、右端3つの時代ボタンと
+       スライダー右端がカードの下に入って**押せなかった**。時代バーの高さは
+       時代の要約文の行数や開示行で変わるので、定数では原理的に追随できない。
+       既定値 330px は JS が測る前の安全側（1280x720 の実測 322px より大きい）。 */
+    --card-top:calc(var(--tools-b, 104px) + 12px);
+    /* `fixed` をやめて `absolute`（台＝#stage が containing block）にしてある。
+       ページがスクロールする文書になったので、`fixed` のままだと**カードだけが
+       画面に貼り付いたまま残り、折り返しの下の出典に覆いかぶさる**
+       ——G-202 条件2「読めなくするのは禁止」に真正面からぶつかる。
+       台の中に置けば、カードは地図と一緒に上へ流れて出典に触らない。
+       起点が台の左上に変わるだけで、スクロール0のときの座標は fixed と同じである。 */
+    position:absolute; z-index:30; right:16px; top:var(--card-top); width:330px;
+    max-height:calc(var(--stage-h) - var(--card-top) - var(--sheet-b, 330px));
+    background:var(--paper);
+    border-radius:var(--r); box-shadow:var(--shadow), var(--rule-gold); overflow:hidden;
+    display:flex; flex-direction:column;
+    transform:translateX(18px); opacity:0; pointer-events:none;
+    transition:transform .28s cubic-bezier(.2,.8,.3,1), opacity .22s ease;
+  }
+  #card.open{ transform:none; opacity:1; pointer-events:auto; }
+  /* 上端も定数をやめた（G-190 の同型）。`top:76px` は AI開示バナーが2行になる幅
+     （1280x720 実測でバナー下端 56.6px・道具の下端 100.6px）で「全景へ戻る」と「EN」を
+     **カードが 24.6px ぶん覆っていた**——言語切替が押せない画面になっていた。
+     カードは上も下も、**実測した器（`--tools-b` / `--sheet-b`）のあいだにだけ置く**。 */
+  #card-head{ padding:16px 18px 12px; border-bottom:1px solid var(--line); position:relative; }
+  #card-kind{ font-size:10px; letter-spacing:.18em; color:var(--accent); font-weight:700; text-transform:uppercase; }
+  /* 史跡の固有名は明朝（§3-3 の4面のうちの1つ）。史書を開いた品格はここで出す。 */
+  #card-title{ margin:6px 0 3px; font-family:var(--serif); font-size:21px; font-weight:600;
+               letter-spacing:.04em; line-height:1.3; padding-right:28px; }
+  #card-sub{ font-size:11.5px; color:var(--ink-soft); }
+  #card-close{
+    position:absolute; top:12px; right:12px; width:26px; height:26px;
+    border:1px solid var(--line); border-radius:var(--r);
+    background:transparent; color:var(--ink-soft); font-size:15px; line-height:1;
+    cursor:pointer; font-family:inherit;
+  }
+  #card-close:hover{ background:rgba(43,37,32,.07); color:var(--ink); }
+  #card-body{ padding:14px 18px 18px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  #card-desc{ margin:0 0 14px; font-size:13px; line-height:1.85; color:var(--ink); }
+  .meta-row{ display:flex; gap:10px; font-size:11.5px; padding:6px 0; border-top:1px dashed var(--line); }
+  .meta-row dt{ flex:0 0 74px; color:var(--ink-soft); margin:0; }
+  .meta-row dd{ margin:0; flex:1; }
+  #card-eras{ display:flex; flex-wrap:wrap; gap:5px; margin-top:12px; }
+  .etag{ font-size:10.5px; padding:3px 8px; border-radius:var(--r-s);
+         background:transparent; border:1px solid var(--line); color:var(--ink-soft); }
+  .etag.now{ background:var(--accent-soft); border-color:rgba(200,84,58,.35); color:var(--accent-deep); font-weight:700; }
+  /* ---- 1地点タイムラプス（timeline） ---- */
+  #card-tl{ margin-top:14px; }
+  #card-tl .tl-head{
+    font-size:10px; letter-spacing:.14em; color:var(--ink-soft); font-weight:700;
+    padding-bottom:6px; border-bottom:1px solid var(--line); margin-bottom:8px;
+  }
+  .tl-row{
+    position:relative; padding:6px 0 8px 16px; font-size:11.5px; line-height:1.75; color:var(--ink-soft);
+    border-left:2px solid var(--line); margin-left:3px;
+  }
+  .tl-row::before{
+    content:""; position:absolute; left:-5px; top:11px; width:8px; height:8px; border-radius:50%;
+    background:rgba(43,37,32,.24); box-shadow:0 0 0 2px var(--paper-solid);
+  }
+  .tl-row.now{ color:var(--ink); border-left-color:var(--accent-soft); }
+  .tl-row.now::before{ background:var(--accent); }
+  .tl-row .tl-era{ font-weight:700; color:var(--ink); font-size:11px; letter-spacing:.02em; }
+  .tl-row.now .tl-era{ color:var(--accent); }
+  /* 同じ場所の「その時代の呼び名」も固有名なので明朝（§3-3）。 */
+  .tl-row .tl-name{ font-family:var(--serif); font-weight:600; font-size:12.5px; margin-left:6px; }
+  .tl-row .tl-note{ display:block; margin-top:2px; }
+  .tl-row .tl-src{ display:block; margin-top:3px; font-size:10px; color:var(--ink-faint); }
+  .tl-row .tl-src a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:2px; }
+  .tl-row .tl-src a:hover{ color:var(--accent-deep); }
+  /* リンクを拒否している出典（link_policy: forbidden）。下線を引かない＝押せないことが見て分かる。
+     色は本文より濃くして「消されていない出典」であることを保つ。 */
+  .tl-row .tl-src .tl-srcname{ color:var(--ink-soft); font-weight:700; text-decoration:none; }
+  #card-desc2{ margin:10px 0 0; font-size:11.5px; line-height:1.75; color:var(--ink-soft); }
+  #card-src{ margin-top:14px; font-size:10.5px; color:var(--ink-faint); line-height:1.65; }
+  .src-head{ color:var(--ink-soft); font-weight:700; letter-spacing:.08em; margin-bottom:4px; }
+  .src-item{ padding:2px 0; }
+  .src-item a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:2px; }
+  .src-item a:hover{ color:var(--accent-deep); }
+  .src-item .src-name{ color:var(--ink-soft); font-weight:700; text-decoration:none; }
+  .src-meta{ color:var(--ink-faint); }
+  .src-note{ margin-top:5px; color:var(--ink-faint); }
+
+  /* ---------------------------------------------------------------- 時代バー */
+  #erabar{
+    /* こちらも `fixed` をやめた（#card と同じ理由）。`bottom:0` の相手は画面ではなく
+       **台の下端**になる——台は見切れのぶん画面より低いので、時代バーの板の下に
+       `--peek` ぶんの帯が残り、そこに次の紙の頭が覗く（条件9）。 */
+    position:absolute; z-index:25; left:0; right:0; bottom:0;
+    padding:12px 16px calc(12px + var(--safe-b));
+    background:linear-gradient(to top, rgba(255,253,248,.97) 55%, rgba(255,253,248,0));
+    pointer-events:none;
+  }
+  #erabar-inner{
+    pointer-events:auto; max-width:1080px; margin:0 auto;
+    background:var(--paper-solid); border-radius:var(--r);
+    box-shadow:var(--shadow), var(--rule-gold);
+    padding:14px 20px 15px;
+  }
+  #era-top{ display:flex; align-items:baseline; gap:10px; margin-bottom:2px; flex-wrap:wrap; }
+  /* 時代名は明朝（§3-3 の4面のうちの1つ）。 */
+  #era-name{ font-family:var(--serif); font-size:20px; font-weight:600; letter-spacing:.08em; }
+  #era-years{ font-size:11.5px; color:var(--ink-faint); letter-spacing:.04em; }
+  #era-count{ margin-left:auto; font-size:11px; color:var(--accent); font-weight:700; letter-spacing:.06em; }
+  #era-sum{ margin:6px 0 11px; font-size:12px; line-height:1.8; color:var(--ink-soft); min-height:2.3em; }
+  #era-ctl{ display:flex; align-items:center; gap:12px; }
+  /* 操作ボタンは墨。朱を操作に使うと、寄った時に画面内の朱が5つ（戻る・再生・つまみ・
+     選択ラベル・選択チップ）になり、「いまどれが選ばれているか」が読めなくなる。 */
+  #playbtn{ flex:0 0 auto; min-width:78px; background:var(--ink); border-color:var(--ink);
+            color:var(--paper); box-shadow:none; }
+  #playbtn[aria-pressed="true"]{ background:var(--ink); border-color:var(--ink); }
+  #slider-wrap{ flex:1; position:relative; }
+  #era-slider{
+    -webkit-appearance:none; appearance:none; width:100%; height:22px;
+    background:transparent; cursor:pointer; margin:0; display:block;
+  }
+  /* 時代の帯は「面」ではなく一本の罫。墨（古い）から朱（新しい）へ流れる。
+     つまみだけは物理的に動かすものなので円のまま残す（§3-1）。 */
+  #era-slider::-webkit-slider-runnable-track{
+    height:4px; border-radius:1px;
+    background:linear-gradient(90deg, rgba(43,37,32,.20), rgba(200,84,58,.34));
+  }
+  #era-slider::-moz-range-track{
+    height:4px; border-radius:1px;
+    background:linear-gradient(90deg, rgba(43,37,32,.20), rgba(200,84,58,.34));
+  }
+  #era-slider::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none; width:18px; height:18px; margin-top:-7px;
+    border-radius:50%; background:var(--accent); border:3px solid var(--paper-solid);
+    box-shadow:var(--shadow-soft);
+  }
+  #era-slider::-moz-range-thumb{
+    width:18px; height:18px; border-radius:50%; background:var(--accent);
+    border:3px solid var(--paper-solid); box-shadow:var(--shadow-soft);
+  }
+  #era-ticks{ display:flex; justify-content:space-between; margin-top:1px; }
+  #era-ticks button{
+    border:none; background:none; font-family:inherit; font-size:10px; color:var(--ink-faint);
+    padding:2px 1px; cursor:pointer; letter-spacing:-.02em; white-space:nowrap;
+  }
+  #era-ticks button:hover{ color:var(--ink); }
+  #era-ticks button[aria-current="true"]{ color:var(--accent); font-weight:700; }
+  #sitechips{
+    display:flex; gap:6px; margin-top:11px; overflow-x:auto; padding-bottom:3px;
+    scrollbar-width:thin; -webkit-overflow-scrolling:touch;
+  }
+  #sitechips::-webkit-scrollbar{ height:4px; }
+  #sitechips::-webkit-scrollbar-thumb{ background:rgba(43,37,32,.18); border-radius:1px; }
+  /* 短冊。非選択は紙＋細い罫で静かに退き、選択だけが朱で沈む（§2 原則3）。 */
+  .sitechip{
+    flex:0 0 auto; border:1px solid var(--line); background:var(--paper); border-radius:var(--r-s);
+    font-family:inherit; font-size:11.5px; color:var(--ink-soft); padding:5px 11px; cursor:pointer;
+    white-space:nowrap; letter-spacing:.04em;
+  }
+  .sitechip:hover{ border-color:rgba(200,84,58,.45); color:var(--ink); }
+  .sitechip.on{ background:var(--accent); border-color:var(--accent); color:var(--paper); }
+  #sitechips .empty{ font-size:11.5px; color:var(--ink-faint); padding:5px 2px; }
+  /* H-2（art-direction.md §5-4）。最小寸法でカードを開いている間だけ出る「戻す」行。
+     H-1 は時代バーの可変2つ（要約文・近道）を退避させるが、**黙って消すと
+     「畳んで隠した」に見える**——AI開示に掛けている構え（畳まない・隠さない）は
+     条文の対象外である自社の文にも当てる。だから (1) 何が退避したかを名指しし
+     (2) 戻し方（＝カードを閉じる）を同じ1行に置く。既定は display:none で、
+     出るのは `@media (max-width:360px)` かつ `#card.open` の時だけ。 */
+  #era-restore{
+    display:none; width:100%; margin-top:9px; padding:0;
+    border:none; background:none; font-family:inherit;
+    font-size:11px; line-height:1.5; color:var(--ink-soft);
+    text-align:left; cursor:pointer; letter-spacing:.02em;
+  }
+  #era-restore:hover{ color:var(--ink); }
+
+  /* ------------------------------------------------- 台と折り返し（G-215） */
+  /* **このページは「1画面のアプリ」ではなく「スクロールする文書」である。**
+     #stage が最初の1画面（地図の器・時代バー・カード）、その下に #belowfold が続く。
+     出典（#attrib）とホスティング開示（#hosting-note）は #belowfold にある。
+
+     なぜ動かしたか: 320x640 で不可侵3ブロックが 270px＝画面の42%を常時占め、
+     地図の素の帯が 30px（カードを開くと 8px）しか残っていなかった（ハヤ §5-1 実測）。
+     G-202（シノ）が「GSI許諾3層にも REG-007 第11条第1項にも**位置の規定が無い**」
+     ことを一次で確認し、②③は条件付きで折り返しの下へ置けると判定した。
+     **①AI開示だけは動かない**——REG-007 第4条第3項が
+     「スクロールしなければ到達しない位置での掲示」を名指しで禁じており、例外規定が無い。
+     だから #topbar は fixed のままで、スクロールしてもしなくても常に画面にある。
+
+     動かしてよいことと、読めなくしてよいことを混ぜない（条件2）:
+       - #attrib / #hosting-note の**指定は1バイトも変えていない**（下の節がそのまま残る）。
+       - 器の寸法も時代バーの板と揃えてある（下の #belowfold-inner 参照）ので、
+         **4行の折り返し方＝行数が移設前と変わらない**。
+
+     到達手段は**スクロールだけ**である（条件1）。折りたたみ（details 要素）・タブ・
+     モーダル・「もっと見る」は置かない——出典が既定で存在しないように見える見せ方は、
+     GSI規約の「あたかも国土地理院が作成したかのような態様」の側で赤くなる。 */
+  #stage{
+    position:relative; height:var(--stage-h);
+    /* 台そのものは**当たらない**。ここを auto にすると、画面いっぱいの透明な板が
+       キャンバスの上に乗って地図が一切触れなくなる。板の中で触れるのは
+       自分で `pointer-events:auto` を名乗る器（#erabar-inner・#card.open）だけ。 */
+    pointer-events:none;
+  }
+
+  /* 見切れの帯（条件9）。上は絵へ溶け、下は紙になる——「紙が下から出てくる」ことを
+     色で語る。中央の山形は**押せない印**（`aria-hidden`・当たり判定を持たない）である。
+     押せる口（「もっと見る」）にした瞬間、到達手段がスクロール以外に増える（条件1）。 */
+  #fold-cue{
+    height:22px; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(to bottom, rgba(255,253,248,0), rgba(255,253,248,.97));
+  }
+  #fold-cue i{
+    display:block; width:8px; height:8px; margin-top:-4px;
+    border-right:1.5px solid var(--ink-faint); border-bottom:1.5px solid var(--ink-faint);
+    transform:rotate(45deg);
+  }
+  /* 折り返しの下。材質は AI開示バナーと同じ扱い——**不透明な和紙・全幅なので角は裁たれ、
+     上辺に金泥の一本罫**（§2 原則1・§3-2）。ガラスにしない。 */
+  #belowfold{ position:relative; z-index:25; }
+  #belowfold-body{
+    background:var(--paper-solid); box-shadow:var(--rule-gold);
+    padding:0 16px calc(16px + var(--safe-b));
+  }
+  /* **時代バーの板（#erabar-inner）と同じ寸法にしてある。**
+     `max-width` も左右の余白も同じなので、#attrib の4行と #hosting-note の1文が
+     **移設前と同じ幅で折り返す＝行数が変わらない**（条件2「行数を変えない」）。
+     ここを別の幅にすると、文言を1バイトも触らないまま行数だけが変わる。
+     この一致は `build/check-layout.mjs` の SC-2 が実ブラウザで測って守る。 */
+  #belowfold-inner{ max-width:1080px; margin:0 auto; padding:14px 20px 15px; }
+
+  /* ------------------------------------------------------------------ 出典等 */
+  /* **ここから下の指定は G-215 の移設で1バイトも変えていない**（条件2）。
+     置き場所が時代バーの中から折り返しの下（#belowfold-inner）へ移っただけで、
+     文言・リンク・文字の大きさ・行数はどれも同じである。
+     ライセンス上の義務（GSIコンテンツ利用規約 令和7年11月20日改正・
+     `meeting/sources-shino.md` §4-3・D-0029 決定5）であって、デザイン都合で削れない。 */
+  #attrib{
+    margin-top:11px; padding-top:9px; border-top:1px solid rgba(216,161,58,.38);
+    font-size:9.5px; color:var(--ink-faint); line-height:1.7;
+  }
+  #attrib b{ font-weight:600; color:var(--ink-soft); }
+  #attrib a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:2px; }
+  #attrib div + div{ margin-top:2px; }
+  /* T-7 の開示（RINGI-0007 シノ条件15）。出典表記より**大きい**字にしてある——
+     開示は出典よりあとから足されたぶん、いちばん縮められやすい。狭い画面でも
+     #attrib の 8.5px に引きずらせない（下限は build/htmlrun.mjs の HOSTING_NOTE_MIN_PX）。 */
+  #hosting-note{ margin-top:7px; font-size:10px; line-height:1.7; color:var(--ink-faint); }
+  #hosting-note-ja, #hosting-note-en{ font-size:10px; margin:0; }
+
+  /* ------------------------------------------------------- ローディング/エラー */
+  #boot{
+    position:fixed; inset:0; z-index:100; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:14px; text-align:center;
+    background:linear-gradient(180deg,#dceaf4,#f6ecdf); padding:24px;
+    transition:opacity .5s ease; font-size:13px; color:var(--ink-soft);
+  }
+  #boot.gone{ opacity:0; pointer-events:none; }
+  /* 起動画面の見出しも明朝（§3-3 の4面のうちの1つ）。 */
+  #boot h2{ margin:0; font-family:var(--serif); font-size:20px; color:var(--ink);
+            font-weight:600; letter-spacing:.14em; }
+  #boot .spin{
+    width:26px; height:26px; border-radius:50%;
+    border:3px solid rgba(43,37,32,.15); border-top-color:var(--accent);
+    animation:spin 1s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  #boot.err .spin{ display:none; }
+  #boot pre{
+    max-width:min(680px,92vw); text-align:left; font-size:11px; line-height:1.6;
+    background:var(--paper); border-radius:var(--r); padding:14px 16px;
+    overflow:auto; max-height:40vh; color:var(--accent-deep); white-space:pre-wrap; margin:0;
+  }
+
+  /* -------------------------------------------------------------- モバイル */
+  @media (max-width: 860px){
+    #brand h1{ font-size:16px; letter-spacing:.06em; }
+    #brand p{ display:none; }
+    #topbar-row{ padding:11px 12px 0 12px; }
+    /* 記号（AI開示）は落とすが、**開示の本文は1文字も削らない**。畳まない・隠さない。 */
+    #ai-banner{ gap:4px 0; padding:calc(env(safe-area-inset-top,0px) + 7px) 12px 7px; }
+    #ai-banner-mark, #ai-banner-mark-en{ display:none; }
+    #ai-banner-text, #ai-banner-text-en{ font-size:11px; line-height:1.6; }
+    #card{
+      right:10px; left:10px; width:auto; top:auto; bottom:calc(var(--sheet-b, 210px) + var(--safe-b));
+      /* 38vh は「読みやすい高さ」の上限であって、**空いている高さの保証ではない**。
+         狭い画面では時代バーが高くなり、38vh のカードは上の AI開示バナーへ食い込む
+         （実測 320x640 で上端 -32px＝画面の外・開示を覆う）。開示は隠せない
+         （REG-007 第4条第3項）ので、上の器（`--tools-b`）で必ず頭打ちにする。 */
+      /* 上限は `--tools-b`（#tools の下端）ではなく **`--topbar-b`（上の段まるごとの下端）**。
+         狭い画面では題箋（#brand）の方が道具より背が高く、#tools だけを見ていると
+         **カードが製品名を覆う**——実測 320x640 で題箋を 23px・製品名の2行目を 11px、
+         390x844 でも題箋を 6px 覆っていた（G-195）。H-3 で製品名を1行にすれば今日の
+         11px は消えるが、消えるのは今日の文字列に対してだけである。上の器を
+         取り違えている限り、名前が伸びた日・字が大きくなった日に必ず戻ってくる。 */
+      /* 引く相手は画面（100vh）ではなく**台の高さ**（`--stage-h`）である。
+         画面から引くと、台が見切れのぶん低いぶんだけカードが上へ伸び、
+         上の器（AI開示・題箋）を `--peek` px 食う。 */
+      max-height:min(38vh, calc(var(--stage-h) - var(--topbar-b, 116px) - var(--sheet-b, 210px)
+                                - var(--safe-b) - 10px));
+      transform:translateY(16px);
+    }
+    #card.open{ transform:none; }
+    #erabar{ padding:10px 10px calc(8px + var(--safe-b)); }
+    #erabar-inner{ padding:11px 14px 12px; border-radius:var(--r); }
+    #era-sum{ font-size:11.5px; min-height:0; max-height:3.4em; overflow:hidden; }
+    #era-ticks button{ font-size:9px; }
+    #attrib{ font-size:8.5px; margin-top:8px; padding-top:7px; }
+    /* 折り返しの下の器も**時代バーと同じ値**に揃える（上の #belowfold-inner の理由と同じ。
+       320px では 320 − 左右10 − 左右14 ＝ 内寸 272px で、移設前と1px も変わらない）。 */
+    #belowfold-body{ padding:0 10px calc(12px + var(--safe-b)); }
+    #belowfold-inner{ padding:11px 14px 12px; }
+  }
+  @media (max-width: 520px){
+    #era-ticks button{ font-size:0; padding:2px 0; }
+    #era-ticks button::before{ content:"·"; font-size:14px; line-height:.7; }
+    #era-ticks button[aria-current="true"]::before{ content:"●"; font-size:8px; }
+  }
+  /* ------------------------------------------------ 最小寸法（320x640・§5） */
+  /* art-direction.md §5（ブランド所管の規範・G-195）の実装。**実測値はここに転記しない**——
+     帯・カード高・不可侵3ブロックの合計は build/check-layout.mjs が毎回出す
+     （§5-6 のチェックリスト3行）。転記した数字は、書いた日から古くなる。
+     **不可侵の3ブロック（AI開示・出典4行・ホスティング注記）は1バイトも触らない**
+     ——狭いという理由で自分の開示だけを短くするのは筋が悪い（§5-2）。
+     ここでやるのは (H-3) 製品名を1行に収める と (H-1) カードが開いている間だけ
+     時代バーの「可変」2つを譲る、の2つだけである。 */
+  @media (max-width: 360px){
+    /* H-3: 製品名が折れている画面を出さない（実測 320x640 で 52px＝2行だった）。
+       日本語は 15px で1行に収まる。**英題 "Japan History Diorama" は 21字あり、
+       同じ 15px の nowrap にすると #tools の右端が 406px＝画面（320px）の外へ出た**
+       （実測）。文字を折らないために道具を画面の外へ出すのは直したことにならないので、
+       英題だけ 12.5px に落とし、道具（.pill）も同時に詰めて両方を画面内へ入れた
+       ——実測 ja 題箋[12,150.7]/道具[187.5,308]・en 題箋[12,165.7]/道具[178.1,308]。 */
+    #brand{ padding:9px 8px 10px; }
+    #brand-title{ font-size:15px; white-space:nowrap; }
+    html[lang="en"] #brand-title{ font-size:12.5px; letter-spacing:.01em; }
+    .pill{ font-size:10.5px; padding:7px 8px; }
+    /* 言語切替だけは折らせない。「日本語」は 10.5px で 51.4px 要り、既定の 50px では
+       **1.4px 足りずに「日本／語」と2行に折れていた**（実測）。幅で余裕を作ったうえで
+       nowrap を掛ける——ここは3字の固定文字列なので、伸びて溢れる余地が無い。
+       溢れる余地があるのは「◀ 全景へ戻る／◀ Back to map」の方で、そちらは
+       **ピルの中で折れてよい**（折れても1字も隠れず、題箋より低いので高さも増えない）。 */
+    #langbtn{ min-width:54px; white-space:nowrap; }
+    /* 寄っている間、同じボタンが「全体表示」→「◀ 全景へ戻る」（en: "◀ Back to map"）に
+       化けるので、**カードを開いた瞬間に上の段だけ 1px 溢れる**（実測 ja 297px/収容296px）。
+       最初 `flex-wrap:wrap` で次の行へ落としたが、それだと段が1つ増えて上の器が
+       ja 159→198px・en 171→209px へ伸び、**カードが 116→77px / 103→64px と痩せる**
+       ——「隠さない」ためのはずの折り返しが、H-1 で稼いだ高さをそのまま食っていた。
+       採ったのは**道具の側を縮めてピルの中で文字を折る**方（`min-width:0`）。
+       文字は1字も隠れず、ピルは2行ぶんでも題箋（39〜45px）より低いので**高さは増えない**。 */
+    #topbar-row{ gap:8px; }
+    #tools{ min-width:0; }
+    .pill{ min-width:0; }
+
+    /* H-1: 排他。カードが開いている**あいだだけ**、時代バーが可変の2つを譲る。
+       #era-top（時代名・年代・件数）と #era-ctl（再生＋スライダー）は残す——
+       時代の移動はこの画面の主導線で、カードを読んでいる間も文脈として要る。
+       `#card` は `#erabar` の**兄**（body 直下で card → erabar の順）なので、
+       JS の状態を増やさず一般兄弟結合子だけで書ける。 */
+    #card.open ~ #erabar #era-sum,
+    #card.open ~ #erabar #sitechips{ display:none; }
+    #card.open ~ #erabar #era-restore{ display:block; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001s !important; transition-duration:.08s !important; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="scene" aria-label="日本列島の立体ジオラマ" role="img"></canvas>
+<div id="labels" aria-hidden="true"></div>
+
+<header id="topbar">
+  <!-- AI開示（REG-007 第4条第1項・第3項／第5条第2項）。**この4要素は消せない。**
+       **日英の逐語文を、どちらも静的HTMLに直接書いてある**（RINGI-0007 T-8・イシ条件1）。
+       理由は2つ。(1) JSが落ちた時にも開示が残る——落ちた画面が「人が書いた」ように見えるのが
+       いちばん悪い壊れ方である。(2) 英語面にURLを与える（`?lang=en`）と、既定が ja だから
+       落ちないという前提が崩れる。**英語の静的開示は、その実装より先に無ければならない。**
+       言語切替 renderAiDisclosure() は**表示の切替だけ**を行い、文言は1文字も書かない。
+       文言を1文字でも変えると build/check-html.mjs の逐語検査（静的＋実DOM）が落ちる。 -->
+  <div id="ai-banner" role="note" aria-label="AI開示 / AI disclosure">
+    <span id="ai-banner-mark" lang="ja">AI開示</span>
+    <p id="ai-banner-text" lang="ja">この画面はAIが運営・応対しています。日本史ジオラマの解説文・実装・地図の構成は、株式会社DIGITのAIエージェントが作成しました。人間ではありません。人間による監修は入っていません。支出・方針の承認は人間のオーナーが行います。</p>
+    <span id="ai-banner-mark-en" lang="en">AI DISCLOSURE</span>
+    <p id="ai-banner-text-en" lang="en">This screen is operated and answered by AI. The texts, code and map composition of Japan History Diorama were produced by the AI agents of DIGIT Inc. Not by a human. No human editorial review was applied. Spending and policy decisions are approved by the human owner.</p>
+  </div>
+  <div id="topbar-row">
+    <div id="brand">
+      <h1 id="brand-title">日本史ジオラマ</h1>
+      <p id="brand-sub">JAPAN HISTORY DIORAMA</p>
+    </div>
+    <div id="tools">
+      <button class="pill" id="resetbtn" type="button">全体表示</button>
+      <button class="pill" id="langbtn" type="button" aria-pressed="false">EN</button>
+    </div>
+  </div>
+</header>
+
+<div id="inset" aria-hidden="true"><b id="inset-cap">沖縄本島・首里城</b></div>
+
+<!-- 最初の1画面（台）。**折り返しの上に載るのはここまで**である。
+     地図（#scene）は台の裏に fixed で敷いてあり、台と一緒には流れない
+     ——ジオラマは机の上に置きっぱなしで、その上を紙が上下する形にした。
+     台の高さは `--stage-h`（画面 − 見切れ）。**画面の高さではない。** -->
+<div id="stage">
+  <aside id="card" role="dialog" aria-live="polite" aria-label="地点の説明">
+    <div id="card-head">
+      <button id="card-close" type="button" aria-label="閉じる">×</button>
+      <div id="card-kind"></div>
+      <h2 id="card-title"></h2>
+      <div id="card-sub"></div>
+    </div>
+    <div id="card-body">
+      <p id="card-desc"></p>
+      <!-- タイムラプスは説明文のすぐ下。**寄った時の主役**なので、
+           年代表や出典より上に置く（下に置いたら実測でスクロールの外に出た）。 -->
+      <div id="card-tl"></div>
+      <p id="card-desc2"></p>
+      <dl id="card-meta"></dl>
+      <div id="card-eras"></div>
+      <div id="card-src"></div>
+    </div>
+  </aside>
+
+  <footer id="erabar">
+    <div id="erabar-inner">
+      <div id="era-top">
+        <span id="era-name"></span>
+        <span id="era-years"></span>
+        <span id="era-count"></span>
+      </div>
+      <p id="era-sum"></p>
+      <div id="era-ctl">
+        <button class="pill" id="playbtn" type="button" aria-pressed="false">▶ 再生</button>
+        <div id="slider-wrap">
+          <input id="era-slider" type="range" min="0" max="10" step="1" value="9"
+                 aria-label="時代スライダー">
+          <div id="era-ticks"></div>
+        </div>
+      </div>
+      <div id="sitechips"></div>
+      <!-- H-2（art-direction.md §5-4）。狭い画面でカードを開くと上の2つが退避するので、
+           **何が退いたかを名指しして、戻し方を同じ行に置く**。文言は applyLang() が入れる
+           （AI開示・出典と違い法定の開示ではないので、JS が持ってよい面である）。 -->
+      <button id="era-restore" type="button"></button>
+    </div>
+  </footer>
+</div>
+
+<!-- 折り返しの下（G-202 条件0〜3・art-direction §5-7 条件9）。
+     **地図と同じ1つのドキュメントの中にある**——地図を別ページや iframe へ
+     切り出して出典をこちらに残す構成は不可である（条件3）。その瞬間、
+     地図が単体で流通して出典が付いてこない。
+     到達手段はスクロールだけ。畳む口も、押して開く口も置いていない（条件1）。 -->
+<section id="belowfold" aria-label="出典とホスティングの開示 / Attribution and hosting disclosure">
+  <div id="fold-cue" aria-hidden="true"><i></i></div>
+  <div id="belowfold-body">
+    <div id="belowfold-inner">
+      <!-- 出典表記。**ライセンス上の義務**であって、デザイン都合で削ってはならない
+           （sources-shino.md §4-3・GSIコンテンツ利用規約 令和7年11月20日改正）。
+           リンクのURLはデータ側（dem-japan.json / sites.json の meta）から入れる
+           ——HTMLに外部URLを直書きすると build/check-html.mjs が「外部依存」として弾くため。 -->
+      <div id="attrib">
+        <div id="attrib-terrain">地形データ: 読み込み中…</div>
+        <div id="attrib-rest">海岸線 <b>Natural Earth</b>（パブリックドメイン） ／
+          3D描画 <b>three.js r169</b>（MIT） ／ 解説文 © 株式会社DIGIT</div>
+      </div>
+      <!-- T-7 の開示（RINGI-0007 §4-4 シノ提示の逐語・条件15）。**開示なしでの公開は不可。**
+           サイトの売りが「外部依存ゼロ・PIIゼロ」である以上、「当社が触れない」と
+           「誰も記録していない」の差を黙って持ち越せば、読者は後者だと読む。
+           AI開示と同じ構えで**日英とも静的HTMLに逐語で置く**——JSが落ちた画面に
+           開示が残らない形にはしない。JS は display を切り替えるだけ（renderHostingNote）。
+           **太字などの行内タグを入れない。** 逐語検査は静的HTML（タグを空白に潰して読む）と
+           実描画（テキストを連結して読む）の両方から見るので、句の途中にタグが入ると
+           同じ1文が2つの経路で別々の文字列に見える。強調はCSSで足りる。 -->
+      <div id="hosting-note" role="note" aria-label="配信とアクセスログの開示 / Hosting and access-log disclosure">
+        <p id="hosting-note-ja" lang="ja">本サイトは GitHub Pages で配信されます。GitHub は配信元として訪問者のIPアドレスを記録します（GitHubのセキュリティ目的）。当社はこれを受領も取得もしません。サイト自身は Cookie・外部リクエスト・アクセス解析を一切使いません。</p>
+        <p id="hosting-note-en" lang="en">This site is served by GitHub Pages. GitHub logs visitors' IP addresses for its own security purposes. DIGIT neither receives nor obtains them. The site itself uses no cookies, no external requests, and no analytics.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="boot">
+  <div class="spin"></div>
+  <h2>日本列島を組み立てています…</h2>
+  <div id="boot-msg">assembling the archipelago…</div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three/three.module.min.js",
+    "three/addons/": "./vendor/three/addons/"
+  }
+}
+</script>
+<script type="module">
+/* ============================================================================
+ * 日本史ジオラマ / Japan History Diorama — WS-005
+ *
+ * 設計の要点（読む人向け）:
+ *  - 「GISツール」ではなく「机の上のジオラマ」を目指す。だから縦方向は
+ *    大げさに誇張してあるし、山はローポリの円錐、城は積み木でできている。
+ *  - 実測なのは海岸線（Natural Earth）と地点の緯度経度だけ。起伏は合成。
+ *    → lib/mapcore.js の heightAt() が唯一の「標高の出どころ」で、
+ *      国土地理院のDEMを入れる時はそこだけ差し替えれば済むようにしてある。
+ *  - シェーダは自作しない（ブラウザで確認できない環境で書いたため）。
+ *    水の揺らぎは canvas で作ったタイル画像を2枚、速度を変えて流している。
+ *  - 当たり判定に Raycaster を使わない。30地点を毎フレーム画面座標へ
+ *    projection して2Dで最近傍を取る（タッチとマウスで挙動が完全に同じ）。
+ * ========================================================================== */
+
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import {
+  makeProjection, heightAt, layoutLabels, labelPriority, labelBudget,
+  relieveCrowding, reliefFloor, markerGrow, pickAnchorHeight, PICK_RADIUS, LABEL_ALIVE_MIN,
+  makeLandIndex, planHills, installElevationGrid, elevationSource, unitToMeters,
+  siteInEra, lifespanText, sitePhaseText, timelineAt, kindAt, labelAt, kindsOf, hasTimeline,
+  INSET_LAT_MAX, isInsetSite, insetFolded,
+  clamp, lerp, damp, easeInOutCubic, hash2, valueNoise,
+} from './lib/mapcore.js';
+
+/* ------------------------------------------------------------------ 起動枠 */
+
+const bootEl = document.getElementById('boot');
+const bootMsg = document.getElementById('boot-msg');
+const say = (jp, en) => { bootMsg.textContent = `${jp} · ${en}`; };
+
+function fail(err) {
+  const detail = (err && (err.stack || err.message)) || String(err);
+  bootEl.classList.remove('gone');
+  bootEl.classList.add('err');
+  bootEl.querySelector('h2').textContent = '読み込みに失敗しました';
+  bootMsg.textContent = 'Something went wrong while building the map.';
+  const pre = document.createElement('pre');
+  pre.textContent = detail + (location.protocol === 'file:'
+    ? '\n\nヒント: file:// で開くと data/*.json を読めません。'
+      + '\nローカルサーバ経由で開いてください（README参照）:'
+      + '\n  python3 -m http.server 8080'
+    : '');
+  if (!bootEl.querySelector('pre')) bootEl.appendChild(pre);
+  console.error(err);
+}
+window.addEventListener('error', (e) => fail(e.error || e.message));
+window.addEventListener('unhandledrejection', (e) => fail(e.reason));
+
+/* ------------------------------------------------------------------ 定数群 */
+
+const MAP_SIZE   = 22;     // ワールド単位での列島の最大辺
+const LAND_H     = 0.34;   // 陸の板の厚み
+const WATER_Y    = 0.20;   // 海面の高さ（陸の板の途中＝海岸の崖が少し見える）
+const MARKER_Y   = LAND_H; // 地点マーカーが立つ高さ
+const MARKER_S   = 1.62;   // 地点マーカーの基準倍率（v0 の 1.15 から拡大）
+const TIER_S     = { 1: 1.00, 2: 0.84, 3: 0.71 };  // 重要度による大きさの差
+// 山の配置（候補グリッド・クリアランス・帯・雪）は lib/mapcore.js の HILL_TUNE /
+// HILL_CLEAR_OPTS が正本。地点数を増やすと山が消えた v0.2 の固定半径はもう無い。
+const PLAY_MS    = 2600;   // 「再生」で1時代あたりに留まる時間
+const ZOOM_DIST  = 6.2;    // 「寄り」の目標距離（ワールド単位）。**相対倍率にしない**
+                           //  ——倍率だと2回目のクリックで寄りすぎ、3回目で何も起きない
+const ZOOM_MS    = 0.95;   // 寄りのイージング秒数
+const ZOOM_BACK  = 0.78;   // 寄っている間、主役以外のマーカーを縮める倍率
+const SEA_SPAN   = 520;    // 海面の一辺。画角より桁違いに大きくして「板の端」を絶対に見せない
+
+const COL = {
+  sky_top:  '#dbe9f2',
+  sky_bot:  '#f6ece0',
+  haze:     0xd8e7f0,       // 霞の色。遠景はここへ溶ける（空と揃えてある）
+  sea:      0x9ecbe0,
+  land:     [0xffffff, 0xfcfff4, 0xf6fbf5],  // バンドテクスチャに掛ける淡い色味
+  cliff:    0xd8c39c,
+  /** 標高による陸の色帯（低地→里山→森→高地の岩→雪）。テクスチャで塗り分ける。 */
+  band: {
+    low:   [201, 222, 156],
+    mid:   [150, 196, 122],
+    high:  [95, 155, 104],
+    rock:  [158, 152, 124],
+    snow:  [246, 249, 247],
+  },
+  sand:     'rgba(233,212,164,0.95)',   // 海岸の砂・崖の縁
+  sand_in:  'rgba(219,190,137,0.65)',
+  hill_lo:  0xa6cf8b,
+  hill_mid: 0x6faa6f,
+  hill_hi:  0x9a9880,
+  snow:     0xf7faf8,
+  stone:    0xafa89a,
+  stone_d:  0x8e897d,
+  wall:     0xfaf6ec,
+  roof:     0x3c586f,
+  roof2:    0x4e6d87,
+  gold:     0xd8a13a,
+  vermil:   0xc4553c,
+  thatch:   0xcaa96e,
+  timber:   0x8a6b4f,
+  mound:    0x93b87f,
+  moat:     0x9dc6da,
+  pad:      0xe8dcc0,
+  outline:  0x3d5f6e,
+};
+
+const prefersReduced = window.matchMedia
+  && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ------------------------------------------------------------------ 状態 */
+
+const state = {
+  lang: 'ja',
+  eraIndex: 9,          // 既定は「江戸」（城がいちばん多く立っている時代）
+  playing: false,
+  playT: 0,
+  selected: null,       // site id
+  hovered: null,        // site id
+  lastInput: 0,
+  focus: null,          // { t, dur, fromTarget, toTarget, fromDist, toDist }
+  zoom: null,           // 寄っている地点の id（null なら全景）
+};
+
+/** 焼き込んだ標高のヘッダ（出典表記に使う）。読めなければ null のまま。 */
+let DEM = null;
+
+/* ------------------------------------------------------- 言語をURLで固定する */
+/*
+ * RINGI-0007 T-8・イシ条件2。**英語面がURLを持たない**のが起案時の姿だった——
+ * `toggleLang()` はランタイムの状態を変えるだけなので、英語面は共有もブックマークも
+ * 検索もできず、`popular/paths` にも1件も現れない（＝測れない）。
+ *
+ * ここが持つのは4つだけ:
+ *   (a) URL の `?lang=` を読んで**起動時の言語を決める**（描画より先）
+ *   (b) `<html lang>` を実際に切り替える（読み上げ・翻訳・検索の言語判定はこれを見る）
+ *   (c) canonical を**自己参照**にする（ja→`./` ／ en→`./?lang=en`）
+ *   (d) og:locale を連動させる
+ * 切替は `history.replaceState` で、**再読み込みはしない**（three.js のシーンを作り直す
+ * 理由が無い。1〜2秒の再構築を言語切替のたびに払わせない）。
+ */
+const CANONICAL_HREF = { ja: './', en: './?lang=en' };
+const OG_LOCALE = { ja: 'ja_JP', en: 'en_US' };
+
+/**
+ * `?lang=` を読む。**知らない値は null**（＝既定の ja へ倒す）。
+ * `ja-JP` / `en-US` のような地域つきも受ける——外から貼られるURLは、こちらの想定より汚い。
+ */
+function langFromSearch(search) {
+  const m = /[?&]lang=([A-Za-z_-]+)/.exec(search || '');
+  if (!m) return null;
+  const v = m[1].toLowerCase().replace('_', '-');
+  if (v === 'ja' || v.startsWith('ja-')) return 'ja';
+  if (v === 'en' || v.startsWith('en-')) return 'en';
+  return null;
+}
+
+/**
+ * 文書そのものの言語表示を `state.lang` に合わせる。**描画より先に呼ぶ。**
+ * ここが `<html lang>` を触らないと、英語面は「日本語のページに英語が書いてある」
+ * ものとして扱われる（読み上げの発音・ブラウザの翻訳提案・検索の言語判定）。
+ */
+function applyLangToDocument() {
+  const lang = state.lang;
+  const other = lang === 'ja' ? 'en' : 'ja';
+  document.documentElement.setAttribute('lang', lang);
+  $('link-canonical').setAttribute('href', CANONICAL_HREF[lang]);
+  $('og-locale').setAttribute('content', OG_LOCALE[lang]);
+  $('og-locale-alt').setAttribute('content', OG_LOCALE[other]);
+}
+
+/** 起動時にURLから言語を決める。**`renderAiDisclosure()` より前に呼ぶこと。** */
+function initLangFromUrl() {
+  state.lang = langFromSearch((typeof location !== 'undefined' && location.search) || '') || 'ja';
+  applyLangToDocument();
+}
+
+/**
+ * いまの言語をURLへ書き戻す（**再読み込みなし**）。
+ * `?era=` など他のパラメータは残す——QAの撮影URLが言語切替で壊れないように。
+ * ja は既定なので `lang` を落とす（URLを1本に保つ。canonical と同じ形になる）。
+ */
+function syncLangUrl() {
+  if (typeof location === 'undefined' || !window.history || !history.replaceState) return;
+  const u = new URL(location.href);
+  if (state.lang === 'ja') u.searchParams.delete('lang');
+  else u.searchParams.set('lang', 'en');
+  history.replaceState(null, '', u.pathname + u.search + u.hash);
+}
+
+/* ------------------------------------------------------------------ 読み込み */
+
+async function loadJSON(url) {
+  const res = await fetch(url, { cache: 'no-cache' });
+  if (!res.ok) throw new Error(`${url} を読めませんでした (HTTP ${res.status})`);
+  return res.json();
+}
+
+/**
+ * 焼き込んだ標高（国土地理院の標高タイル由来）を読み、mapcore へ挿す。
+ *
+ *  - 取りに行くのは**同梱の PNG 1枚**だけ。実行時に外部へは1バイトも出さない。
+ *  - グレースケールPNG を canvas に描いて画素を読む。ガンマ／色空間チャンクを
+ *    書いていないので、入れた数がそのまま出てくる（`tools/pngio.mjs` の注記）。
+ *  - **入っていることを1点で確かめる**（富士山の位置が高く出るか）。
+ *    ここを黙って通すと、色変換が挟まった環境で「実測のつもりの平らな島」になる。
+ *  - 失敗しても投げない。合成標高のまま地図は出る（README §2 の契約は 0..1 のみ）。
+ */
+async function loadElevation() {
+  try {
+    const head = await loadJSON('./data/dem-japan.json');
+    const img = new Image();
+    await new Promise((res, rej) => {
+      img.onload = res;
+      img.onerror = () => rej(new Error('dem-japan.png を読めなかった'));
+      img.src = './data/dem-japan.png';
+    });
+    const cv = document.createElement('canvas');
+    cv.width = head.width; cv.height = head.height;
+    const ctx = cv.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0);
+    const px = ctx.getImageData(0, 0, head.width, head.height).data;
+    const data = new Uint8Array(head.width * head.height);
+    for (let i = 0; i < data.length; i++) data[i] = px[i * 4];
+    installElevationGrid({ width: head.width, height: head.height,
+                           bbox: head.bbox, data, stops: head.stops });
+    const probe = heightAt(138.7274, 35.3606);       // 富士山
+    if (!(probe > 0.6)) {
+      installElevationGrid(null);
+      throw new Error(`格子は読めたが富士山が ${probe.toFixed(3)} しかない（色変換を疑う）`);
+    }
+    DEM = head;
+    console.info('[map] elevation:', elevationSource(), `${head.width}x${head.height}`,
+                 `富士 ${Math.round(unitToMeters(probe))}m`, '/', head.attribution);
+  } catch (e) {
+    // ブラウザ以外（`build/dryrun.mjs` の偽DOM）には Image が無い。そこは異常ではないので
+    // info に落とす。**実ブラウザで落ちた時だけ warn**（実ブラウザの console 0 が検収条件）。
+    const inBrowser = typeof Image === 'function';
+    (inBrowser ? console.warn : console.info)(
+      '[map] 焼き込み標高を使えないので合成値で描く:', e && e.message);
+  }
+}
+
+/* ============================================================== main ===== */
+
+let renderer, scene, camera, controls, clock;
+let coast, sitesDoc, erasDoc, ERAS, ERA_IDS, SITES, proj;
+let markerGroups = [], padMesh = null, shadowMesh = null, highlightRing = null;
+let waterLayers = [];
+let labelEls = new Map();
+const tmpV = new THREE.Vector3();
+const tmpS = new THREE.Spherical();
+const tmpM = new THREE.Matrix4();
+const tmpQ = new THREE.Quaternion();
+const tmpP = new THREE.Vector3();
+const tmpSc = new THREE.Vector3();
+
+async function main() {
+  // **URLの言語はいちばん最初に読む。** ここで `<html lang>` と canonical を確定させておくと、
+  // データ読み込みの数秒のあいだも文書の言語表示が正しい（読み上げ・翻訳提案・検索）。
+  // 画面の文言を揃えるのは要素が出来てからなので applyLang() は initUI() の後。
+  initLangFromUrl();
+  say('データを読み込み中', 'loading data');
+  [coast, sitesDoc, erasDoc] = await Promise.all([
+    loadJSON('./data/japan-coast.json'),
+    loadJSON('./data/sites.json'),
+    loadJSON('./data/eras.json'),
+  ]);
+  ERAS = erasDoc.eras;
+  ERA_IDS = ERAS.map((e) => e.id);
+  SITES = sitesDoc.sites.map((s) => ({ ...s, alive: 0, aliveTarget: 0, pos: null, sx: 0, sy: 0, onScreen: false }));
+
+  proj = makeProjection(coast.bbox, { targetSize: MAP_SIZE });
+
+  // 標高は**ここで実測に差し替わる**。以降 heightAt() を呼ぶ側（収まり計算・陸の
+  // テクスチャ・山）は、それが実測か合成かを知らないままでよい。
+  say('標高を読み込み中', 'loading elevation');
+  await loadElevation();
+  landIndex = makeLandIndex(coast.polygons);
+
+  say('シーンを準備中', 'preparing the scene');
+  buildFitPoints();
+  initRenderer();
+  buildSky();
+  buildLights();
+  buildWater();
+  say('列島を押し出し中', 'extruding the islands');
+  buildLand();
+  prepareSites();
+  say('山を植えています', 'planting mountains');
+  buildHills();
+  say('城を建てています', 'raising castles');
+  buildMarkers();
+  buildLabels();
+  buildInset();
+
+  initUI();
+  // **言語の反映は起動時も切替時も同じ経路**（RINGI-0007 T-8・イシ条件2）。
+  // `?lang=en` で来た訪問者に日本語の画面を見せない。開示・出典・見出しを一括で揃える。
+  applyLang();
+  // QA用: ?era=0 で起動時の時代を指定できる（スクリーンショットで各時代の
+  // マーカーを見比べるため。指定が無ければ既定の江戸）。
+  const eraParam = /[?&]era=(\d+)/.exec((typeof location !== 'undefined' && location.search) || '');
+  if (eraParam) state.eraIndex = clamp(Number(eraParam[1]), 0, ERAS.length - 1);
+  setEra(state.eraIndex, true);
+  // 起動時は目標値を即時反映して「ぱっと見えている」状態から始める
+  for (const s of SITES) s.alive = s.aliveTarget;
+  refreshMarkerMatrices();
+
+  window.addEventListener('resize', () => onResize(false));
+  // 送り始めたらインセットを畳む／戻したら出す（`layoutInset` の中で判断する）。
+  // 畳みは枠だけでなく**本体の絵のマーカー**にも効くので、行列を作り直す合図も立てる
+  // （立てないと模型が残り、薄紙が退いた帯にそれだけが写る——G-224）。
+  // `passive` にしてあるのでスクロールの邪魔をしない。
+  window.addEventListener('scroll', () => { layoutInset(); markersDirty = true; }, { passive: true });
+  window.addEventListener('orientationchange', () => setTimeout(() => onResize(true), 250));
+  onResize(true);
+  watchChrome();
+  console.info('[map] home fit:', VIEW.fitted, 'distance', VIEW.dist.toFixed(1),
+               'fill', ((VIEW.fill || 0) * 100).toFixed(0) + '%');
+
+  clock = new THREE.Clock();
+  renderer.setAnimationLoop(tick);
+
+  requestAnimationFrame(() => {
+    bootEl.classList.add('gone');
+    setTimeout(() => { bootEl.style.display = 'none'; }, 600);
+  });
+}
+
+/* -------------------------------------------------------------- renderer */
+
+function initRenderer() {
+  const canvas = document.getElementById('scene');
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  scene = new THREE.Scene();
+  // near/far は毎フレーム「今のカメラ距離」から決める（tick 内）。寄っても引いても
+  // 霞の掛かり方が同じになり、海の板の端は霞に溶けて絶対に見えない。
+  scene.fog = new THREE.Fog(COL.haze, 16, 62);
+
+  camera = new THREE.PerspectiveCamera(38, 1, 0.5, 900);
+  // 実際の位置は applyHome() が画面比から解く。ここは仮置き。
+  camera.position.set(6, 12, 18);
+
+  controls = new OrbitControls(camera, canvas);
+  controls.target.set(0, 0, 0);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.075;
+  controls.rotateSpeed = 0.6;
+  controls.zoomSpeed = 0.85;
+  controls.panSpeed = 0.7;
+  controls.screenSpacePanning = false;
+  controls.minDistance = 4;
+  // 南西諸島まで引きで見たい人のために、既定の収まり距離よりだいぶ余裕を持たせる
+  controls.maxDistance = 78;
+  // 地図の下へ潜らせない／真上まで行かせない
+  controls.minPolarAngle = 0.20;
+  controls.maxPolarAngle = 1.22;
+  controls.update();
+
+  for (const ev of ['pointerdown', 'wheel', 'keydown', 'touchstart']) {
+    window.addEventListener(ev, () => { state.lastInput = performance.now(); }, { passive: true });
+  }
+}
+
+/* ------------------------------------------------------------------- 空 */
+
+function buildSky() {
+  const c = document.createElement('canvas');
+  c.width = 4; c.height = 256;
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 0, 256);
+  // 上端は霞の色そのもの。海の板は画角より遥かに大きいので普段この空は見えないが、
+  // 見えてしまった時に境目が出ないよう、色を合わせておく。
+  g.addColorStop(0.00, COL.sky_top);
+  g.addColorStop(0.45, '#e8f1f3');
+  g.addColorStop(1.00, COL.sky_bot);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 4, 256);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  scene.background = tex;
+}
+
+/* ------------------------------------------------------------------- 光 */
+
+function buildLights() {
+  scene.add(new THREE.HemisphereLight(0xdaeeff, 0xf1e4c8, 0.72));
+  scene.add(new THREE.AmbientLight(0xffffff, 0.16));
+
+  // 太陽は「午後の西南西・低め」。仰角を約30度まで落としてあるので、
+  // 山も城も影が長く伸びる＝立体が立体として読める（v0 は仰角47度で影が短かった）。
+  const sun = new THREE.DirectionalLight(0xfff0d4, 1.75);
+  sun.position.set(-27, 17.5, 16);
+  sun.target.position.set(2.0, 0, -3.0);   // 本土のまん中を狙う
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  const sc = sun.shadow.camera;
+  // 影のカメラは本土だけを覆う。広げすぎると1テクセルが太って影がぼやける。
+  sc.left = -16; sc.right = 16; sc.top = 16; sc.bottom = -16;
+  sc.near = 1; sc.far = 90;
+  sc.updateProjectionMatrix();
+  sun.shadow.bias = -0.0005;
+  sun.shadow.normalBias = 0.028;
+  scene.add(sun);
+  scene.add(sun.target);
+}
+
+/** トゥーン用の階調テクスチャ（段のついた陰影になる）。 */
+function toonGradient(steps = [70, 140, 205, 255]) {
+  const data = new Uint8Array(steps);
+  const t = new THREE.DataTexture(data, steps.length, 1, THREE.RedFormat);
+  t.minFilter = THREE.NearestFilter;
+  t.magFilter = THREE.NearestFilter;
+  t.generateMipmaps = false;
+  t.needsUpdate = true;
+  return t;
+}
+// buildWater() は buildLand() より先に走るので、階調テクスチャはここで作っておく
+// （null のままだと海だけ既定のトゥーン階調になり、陸と陰影が揃わない）。
+const GRAD = { soft: toonGradient([80, 150, 210, 255]), hard: toonGradient([90, 190, 255]) };
+
+function toon(color, opts = {}) {
+  // MeshToonMaterial は flatShading を持たない（r169 で確認。渡すと警告が出るだけで効かない）。
+  // カクカクした面が欲しい時は、マテリアルではなく **ジオメトリ側** で facet() を使う。
+  return new THREE.MeshToonMaterial({
+    color,
+    map: opts.map || null,
+    gradientMap: opts.hard ? GRAD.hard : GRAD.soft,
+    transparent: !!opts.transparent,
+    opacity: opts.opacity ?? 1,
+  });
+}
+
+/**
+ * ローポリらしい「面ごとにパキッと分かれた陰影」を作る。
+ * インデックスを外して法線を引き直すと、頂点が面ごとに独立するので、
+ * スムーズシェーディングのマテリアルでもフラットシェーディングになる。
+ * MeshToonMaterial が flatShading を持たない以上、こちらでやるしかない。
+ */
+function facet(geo) {
+  const g = geo.toNonIndexed();
+  g.computeVertexNormals();
+  geo.dispose();
+  return g;
+}
+
+/* ------------------------------------------------------------------- 海 */
+
+/**
+ * 白いさざなみを敷き詰めたタイル画像を作る。
+ * 端がつながるよう、周期は整数だけを使っている（offsetを動かしても継ぎ目が出ない）。
+ */
+function makeWaveTexture(size = 256, freqA = 3, freqB = 5) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  const img = ctx.createImageData(size, size);
+  const d = img.data;
+  const TAU = Math.PI * 2;
+  for (let y = 0; y < size; y++) {
+    const v = y / size;
+    for (let x = 0; x < size; x++) {
+      const u = x / size;
+      const w = Math.sin(TAU * (freqA * v + 0.10 * Math.sin(TAU * 2 * u)))
+              + 0.6 * Math.sin(TAU * (freqB * v - 2 * u));
+      let a = clamp((w - 0.92) / 0.68, 0, 1);
+      a = a * a * (3 - 2 * a);
+      const i = (y * size + x) * 4;
+      d[i] = 255; d[i + 1] = 255; d[i + 2] = 255;
+      d[i + 3] = Math.round(a * 255);
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = renderer.capabilities.getMaxAnisotropy
+    ? Math.min(4, renderer.capabilities.getMaxAnisotropy()) : 1;
+  return tex;
+}
+
+/**
+ * 海。v0 は「列島の3倍」の板だったので、引いた画角では板の端が斜めに写り込んでいた。
+ * ここでは一辺 SEA_SPAN(520) — 画角に入る距離の10倍以上 — にして、端を物理的に
+ * 画面の外へ追い出す。そのうえで遠方は霞（scene.fog）で空の色に溶かす。
+ * きらめきのテクセル密度は v0 と同じに保つ（板を大きくした分だけ repeat を増やす）。
+ */
+function buildWater() {
+  const S = SEA_SPAN;
+
+  const base = new THREE.Mesh(new THREE.PlaneGeometry(S, S, 1, 1), toon(COL.sea));
+  base.rotation.x = -Math.PI / 2;
+  base.position.y = WATER_Y;
+  base.receiveShadow = true;
+  base.renderOrder = -1;
+  scene.add(base);
+
+  // density = 1ワールド単位あたりの波タイル数。v0 の見た目（54.5単位に7枚・11枚）を踏襲。
+  const specs = [
+    { tex: makeWaveTexture(256, 3, 5), density: 0.128, op: 0.12, sx: 0.011,  sz: 0.006, y: 0.006 },
+    { tex: makeWaveTexture(256, 4, 7), density: 0.202, op: 0.075, sx: -0.007, sz: 0.010, y: 0.012 },
+  ];
+  for (const sp of specs) {
+    sp.tex.repeat.set(S * sp.density, S * sp.density);
+    const m = new THREE.Mesh(
+      new THREE.PlaneGeometry(S, S, 1, 1),
+      new THREE.MeshBasicMaterial({
+        map: sp.tex, transparent: true, opacity: sp.op,
+        depthWrite: false, fog: true,
+      }),
+    );
+    m.rotation.x = -Math.PI / 2;
+    m.position.y = WATER_Y + sp.y;
+    m.renderOrder = 1;
+    scene.add(m);
+    waterLayers.push({ mesh: m, tex: sp.tex, sx: sp.sx, sz: sp.sz });
+  }
+}
+
+/* ------------------------------------------------------------------- 陸 */
+
+/**
+ * 陸の「色帯」テクスチャを1枚だけ焼く。
+ *
+ * v0 は島ごとに単色だったので、遠目には緑の塊にしか見えなかった。ここでは
+ * 合成標高 heightAt() を 低地 / 里山 / 森 / 高地の岩 / 雪 の5段に量子化して塗り、
+ * さらに海岸線を砂色でなぞって「渚の縁」を作る。
+ *
+ * 実装上の要点:
+ *  - heightAt() は1回が安くない（山脈27本ぶんの距離計算）ので、標高は粗い格子で
+ *    先に引き、テクスチャ側ではバイリニアで拾う。1024^2 回呼ぶと数秒かかる。
+ *  - 帯の境目は標高側に微小ノイズを混ぜて崩す。そのままだと等高線みたいに
+ *    機械的な輪郭が出て、手で塗った感じにならない。
+ *  - UV は ExtrudeGeometry が天面に生の shape 座標（＝ワールドのx, -z）を入れるので、
+ *    texture.repeat / offset をワールド寸法に合わせるだけで貼り付く。
+ */
+function makeLandTexture() {
+  // 合成標高は1点ずつ山脈の距離を解くので粗い格子（288）で引いて補間していた。
+  // 焼き込み格子はただの参照なので、テクスチャと同じ細かさで引ける
+  //（＝1〜2km の起伏が色帯に出る。288 のままだと 8.2km ごとの平均になって消える）。
+  const TW = 1024, TH = 1024;
+  const GN = elevationSource() === 'dem' ? 1024 : 288;
+  const [minLon, minLat, maxLon, maxLat] = coast.bbox;
+
+  const hf = new Float32Array(GN * GN);
+  for (let j = 0; j < GN; j++) {
+    const lat = maxLat - (j / (GN - 1)) * (maxLat - minLat);
+    for (let i = 0; i < GN; i++) {
+      const lon = minLon + (i / (GN - 1)) * (maxLon - minLon);
+      // 帯の境目を崩すための揺らぎ。標高そのものを汚すのはテクスチャ用のこの配列だけ。
+      hf[j * GN + i] = heightAt(lon, lat) + (valueNoise(lon * 9.1, lat * 9.1) - 0.5) * 0.085;
+    }
+  }
+  const sampleH = (fx, fy) => {
+    const i0 = fx | 0, j0 = fy | 0;
+    const i1 = i0 + 1 < GN ? i0 + 1 : i0, j1 = j0 + 1 < GN ? j0 + 1 : j0;
+    const tx = fx - i0, ty = fy - j0;
+    const a = hf[j0 * GN + i0], b = hf[j0 * GN + i1];
+    const c = hf[j1 * GN + i0], d = hf[j1 * GN + i1];
+    return (a + (b - a) * tx) * (1 - ty) + (c + (d - c) * tx) * ty;
+  };
+
+  const cv = document.createElement('canvas');
+  cv.width = TW; cv.height = TH;
+  const ctx = cv.getContext('2d');
+  const img = ctx.createImageData(TW, TH);
+  const d8 = img.data;
+  const B = COL.band;
+  const out = [0, 0, 0];
+  const mix = (a, b, t) => { out[0] = a[0] + (b[0] - a[0]) * t; out[1] = a[1] + (b[1] - a[1]) * t; out[2] = a[2] + (b[2] - a[2]) * t; };
+  const gx = (GN - 1) / (TW - 1), gy = (GN - 1) / (TH - 1);
+  for (let j = 0; j < TH; j++) {
+    const fy = j * gy;
+    for (let i = 0; i < TW; i++) {
+      const h = sampleH(i * gx, fy);
+      if (h < 0.10)      mix(B.low,  B.mid,  clamp(h / 0.10, 0, 1) * 0.5);
+      else if (h < 0.28) mix(B.mid,  B.high, (h - 0.10) / 0.18);
+      else if (h < 0.55) mix(B.high, B.high, 0);
+      else if (h < 0.76) mix(B.high, B.rock, (h - 0.55) / 0.21);
+      else               mix(B.rock, B.snow, clamp((h - 0.76) / 0.15, 0, 1));
+      // ざらつき。無いと帯がベタ塗りに見える
+      const n = 0.962 + hash2(i, j) * 0.075;
+      const k = (j * TW + i) * 4;
+      d8[k]     = out[0] * n;
+      d8[k + 1] = out[1] * n;
+      d8[k + 2] = out[2] * n;
+      d8[k + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+
+  // 海岸線をなぞって砂・崖の縁を作る。線の内側半分だけが陸に残る（外は海で見えない）。
+  const px = (lon) => ((lon - minLon) / (maxLon - minLon)) * (TW - 1);
+  const py = (lat) => ((maxLat - lat) / (maxLat - minLat)) * (TH - 1);
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  for (const pass of [{ w: 13, s: COL.sand }, { w: 5, s: COL.sand_in }]) {
+    ctx.lineWidth = pass.w;
+    ctx.strokeStyle = pass.s;
+    for (const poly of coast.polygons) {
+      for (const ring of poly.rings) {
+        ctx.beginPath();
+        for (let i = 0; i < ring.length; i++) {
+          const x = px(ring[i][0]), y = py(ring[i][1]);
+          if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      }
+    }
+  }
+
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+  tex.anisotropy = renderer.capabilities.getMaxAnisotropy
+    ? Math.min(8, renderer.capabilities.getMaxAnisotropy()) : 1;
+  // 天面の UV は生のワールド座標（x, -z）。ワールド寸法で割って 0..1 に落とす。
+  const p0 = proj.project(minLon, minLat), p1 = proj.project(maxLon, maxLat);
+  const wx = p1.x - p0.x, wy = (-p1.z) - (-p0.z);
+  tex.repeat.set(1 / wx, 1 / wy);
+  tex.offset.set(-p0.x / wx, -(-p0.z) / wy);
+  return tex;
+}
+
+/** 経度緯度 → Shape 用の XY（yが北。rotation.x=-PI/2 で寝かせると北が -z になる）。 */
+function projXY(lon, lat) {
+  const p = proj.project(lon, lat);
+  return { x: p.x, y: -p.z };
+}
+
+let landIndex = null;    // mapcore の陸判定索引（bboxで足切り）
+
+function buildLand() {
+  const landTex = makeLandTexture();
+  const topMats = COL.land.map((c) => toon(c, { map: landTex }));
+  const sideMat = toon(COL.cliff);
+  // 薄い輪郭線。トゥーンの「線画っぽさ」を安く出すための1本（背面押し出しは使わない）。
+  const outlineMat = new THREE.LineBasicMaterial({
+    color: COL.outline, transparent: true, opacity: 0.40, fog: true,
+  });
+
+  const group = new THREE.Group();
+  scene.add(group);
+
+  coast.polygons.forEach((poly, idx) => {
+    const outer = poly.rings[0].map(([lon, lat]) => projXY(lon, lat));
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const p of outer) {
+      if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
+      if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
+    }
+    const minDim = Math.min(maxX - minX, maxY - minY);
+
+    const shape = new THREE.Shape(outer.map((p) => new THREE.Vector2(p.x, p.y)));
+    for (let i = 1; i < poly.rings.length; i++) {
+      shape.holes.push(new THREE.Path(
+        poly.rings[i].map(([lon, lat]) => {
+          const q = projXY(lon, lat);
+          return new THREE.Vector2(q.x, q.y);
+        }),
+      ));
+    }
+
+    // 小さな島でベベルを効かせすぎると天面が消える（内側にオフセットされるため）。
+    // 島の短辺に比例させて、必ず正の面積が残るようにする。
+    const bevel = Math.min(0.05, minDim * 0.11);
+    const useBevel = bevel > 0.006;
+
+    const bevelT = useBevel ? bevel * 0.9 : 0;
+    const geo = new THREE.ExtrudeGeometry(shape, {
+      depth: LAND_H,
+      curveSegments: 1,
+      steps: 1,
+      bevelEnabled: useBevel,
+      bevelThickness: bevelT,
+      bevelSize: useBevel ? bevel : 0,
+      bevelOffset: 0,
+      bevelSegments: useBevel ? 2 : 0,
+    });
+    // ExtrudeGeometry のベベルは [0, depth] の *外側* に張り出す。
+    // 天面は depth ではなく depth + bevelThickness にできてしまうので、
+    // その分だけ戻して「陸の上面 = ちょうど LAND_H」に揃える。
+    // ここを揃えないと、城も山も島の表面に 0.045 ほどめり込む。
+    if (bevelT) geo.translate(0, 0, -bevelT);
+    geo.computeVertexNormals();
+
+    // group 0 = 天面/底面, group 1 = 側面（ExtrudeGeometry の約束）
+    const mesh = new THREE.Mesh(geo, [topMats[idx % topMats.length], sideMat]);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    group.add(mesh);
+
+    // 海岸線の縁取り（アニメ調の輪郭線）。
+    // 上のずらしにより、輪郭そのままの太さの側面はいま [-bevelT, LAND_H - bevelT]
+    // にある。その上端に線を重ねる。
+    const yLine = LAND_H - bevelT + 0.002;
+    const pts = outer.map((p) => new THREE.Vector3(p.x, yLine, -p.y));
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
+    const loop = new THREE.LineLoop(lineGeo, outlineMat);
+    group.add(loop);
+
+  });
+}
+
+/** 陸判定。索引そのものは mapcore 側にある（同じ判定を2箇所に書かない）。 */
+const isLand = (lon, lat) => landIndex.isLand(lon, lat);
+
+/* ----------------------------------------------------------------- 山 */
+
+/**
+ * 山を植える。**どこに何本置くかの計算は `mapcore.planHills()` にある**
+ * （three.js を使わない純粋な計算にしてあるので node から本数を測れる。
+ *  「地点を増やすと山が消える」は、測れるようにするまで誰も気づけなかった）。
+ * ここはその結果を InstancedMesh に流し込むだけ。
+ */
+function buildHills() {
+  const plan = planHills({ bbox: coast.bbox, proj, sites: SITES, isLand });
+  const tiers = plan.tiers;
+  const snow = plan.snow;
+
+  const unitCone = (seg) => {
+    const g = new THREE.ConeGeometry(1, 1, seg, 1, false);
+    g.translate(0, 0.5, 0); // 底面を y=0 に
+    return facet(g);        // 面ごとに割ってローポリ感を出す
+  };
+  const coneLo = unitCone(5), coneMid = unitCone(6), coneHi = unitCone(5);
+
+  const mats = [
+    toon(COL.hill_lo),
+    toon(COL.hill_mid),
+    toon(COL.hill_hi),
+  ];
+  const geos = [coneLo, coneMid, coneHi];
+
+  const AXIS_Y = new THREE.Vector3(0, 1, 0);
+  const tiltQ = new THREE.Quaternion();
+  const tiltAxis = new THREE.Vector3();
+  /** 山ひとつぶんの変換。y軸まわりに回してから、わずかに傾ける。 */
+  const setHill = (im, k, o, scale, yOff) => {
+    tmpQ.setFromAxisAngle(AXIS_Y, o.rot);
+    tiltAxis.set(Math.cos(o.tiltDir), 0, Math.sin(o.tiltDir));
+    tiltQ.setFromAxisAngle(tiltAxis, o.tilt);
+    tmpQ.premultiply(tiltQ);
+    tmpP.set(o.x, LAND_H - 0.02 + yOff, o.z);
+    tmpSc.set(o.r * scale, o.h * (scale === 1 ? 1 : scale), o.r * scale);
+    im.setMatrixAt(k, tmpM.compose(tmpP, tmpQ, tmpSc));
+  };
+
+  tiers.forEach((list, i) => {
+    if (!list.length) return;
+    const im = new THREE.InstancedMesh(geos[i], mats[i], list.length);
+    im.castShadow = true;
+    im.receiveShadow = true;
+    im.frustumCulled = false;
+    list.forEach((o, k) => setHill(im, k, o, 1, 0));
+    im.instanceMatrix.needsUpdate = true;
+    scene.add(im);
+  });
+
+  if (snow.length) {
+    const im = new THREE.InstancedMesh(unitCone(5), toon(COL.snow), snow.length);
+    im.castShadow = false;
+    im.receiveShadow = false;
+    im.frustumCulled = false;
+    snow.forEach((o, k) => {
+      tmpQ.setFromAxisAngle(AXIS_Y, o.rot);
+      tiltAxis.set(Math.cos(o.tiltDir), 0, Math.sin(o.tiltDir));
+      tiltQ.setFromAxisAngle(tiltAxis, o.tilt);
+      tmpQ.premultiply(tiltQ);
+      tmpP.set(o.x, LAND_H - 0.02 + o.h * 0.60, o.z);
+      tmpSc.set(o.r * 0.44, o.h * 0.42, o.r * 0.44);
+      im.setMatrixAt(k, tmpM.compose(tmpP, tmpQ, tmpSc));
+    });
+    im.instanceMatrix.needsUpdate = true;
+    scene.add(im);
+  }
+
+  buildFuji();
+  const rs = [...plan.radii.values()];
+  console.info('[map] hills:', tiers.map((t) => t.length).join('/'),
+               '=', tiers.reduce((a, t) => a + t.length, 0), 'snow:', snow.length,
+               '/ clearance r:', Math.min(...rs).toFixed(2), '〜', Math.max(...rs).toFixed(2),
+               '/ 標高:', elevationSource());
+}
+
+/** 富士山だけは主役なので、なめらかな円錐＋雪冠を手で置く。 */
+function buildFuji() {
+  const p = proj.project(138.7274, 35.3606);
+  const H = 1.22, R = 0.46;
+  const g = new THREE.ConeGeometry(R, H, 26, 1);
+  g.translate(0, H / 2, 0);
+  const m = new THREE.Mesh(g, toon(0x93a9a6));
+  m.position.set(p.x, LAND_H - 0.02, p.z);
+  m.castShadow = true; m.receiveShadow = true;
+  scene.add(m);
+
+  const capH = H * 0.34;
+  const gc = new THREE.ConeGeometry(R * 0.352, capH, 26, 1);
+  gc.translate(0, capH / 2, 0);
+  const mc = new THREE.Mesh(gc, toon(COL.snow));
+  mc.position.set(p.x, LAND_H - 0.02 + H * 0.665, p.z);
+  scene.add(mc);
+}
+
+/* ------------------------------------------------------------- 地点マーカー */
+
+/**
+ * 地点の立体。v0 は全地点が同じ「積み木の城」で、しかも小さすぎて米粒に見えていた。
+ * ここでは (a) 基準倍率を 1.15 → 2.45 に上げ、(b) kind ごとにシルエットを変え、
+ * (c) 重要度 tier で大きさに差をつけた。
+ *
+ * 同じ kind の地点は InstancedMesh でまとめる。パーツは全部おなじ変換行列を共有するので、
+ * 1体を丸ごと拡大縮小できる（＝時代の出入りで生えたり消えたりできる）。
+ *
+ * 座標の約束: 各パーツの y は「中心の高さ」。x/z を入れると本体からずらして置ける。
+ */
+const BOX = (w, h, d, y, color, x = 0, z = 0) => ({ kind: 'box', size: [w, h, d], y, color, x, z });
+const PYR = (r, h, y, color, seg = 4, x = 0, z = 0, rot = Math.PI / 4) =>
+  ({ kind: 'cone', r, h, y, color, seg, x, z, rot });
+/** 下すぼまりでない台形柱（石垣の勾配）。rb=下端半径, rt=上端半径。 */
+const TRZ = (rb, rt, h, y, color, seg = 4, x = 0, z = 0, rot = Math.PI / 4) =>
+  ({ kind: 'trapez', rb, rt, h, y, color, seg, x, z, rot });
+
+/** 天守。石垣の上に、軒の出た屋根を3段積んで鯱を載せる（城の“読める形”はここ）。 */
+const SHAPE_KEEP = [
+  TRZ(0.30, 0.21, 0.13, 0.065, COL.stone),        // 石垣
+  BOX(0.26, 0.11, 0.26, 0.185, COL.wall),         // 一層
+  PYR(0.245, 0.075, 0.2775, COL.roof),            // 一の屋根（軒が壁より外へ出る）
+  BOX(0.19, 0.09, 0.19, 0.360, COL.wall),         // 二層
+  PYR(0.185, 0.065, 0.4375, COL.roof2),
+  BOX(0.13, 0.075, 0.13, 0.5075, COL.wall),       // 最上階
+  PYR(0.14, 0.07, 0.580, COL.roof),
+  BOX(0.035, 0.05, 0.035, 0.640, COL.gold),       // 鯱
+];
+
+/** 宮殿・御所。天守ではなく、低く横に長い殿舎。江戸城に天守が無いのは史実どおり。 */
+const SHAPE_HALL = [
+  BOX(0.42, 0.055, 0.30, 0.0275, COL.stone),
+  BOX(0.34, 0.105, 0.24, 0.1075, COL.wall),
+  PYR(0.30, 0.10, 0.210, COL.roof, 4),
+  BOX(0.24, 0.03, 0.06, 0.275, COL.gold),         // 棟
+];
+
+/** 城跡・城柵。石垣と土塁だけが残っている姿。 */
+const SHAPE_RUIN = [
+  TRZ(0.32, 0.245, 0.115, 0.0575, COL.stone),
+  TRZ(0.215, 0.16, 0.075, 0.1525, COL.stone_d),
+  BOX(0.08, 0.135, 0.08, 0.2575, COL.stone, -0.115, -0.065),   // 折れ残った櫓台
+  BOX(0.06, 0.08, 0.06, 0.230, COL.stone_d, 0.125, 0.08),
+];
+
+/** 神社。鳥居ひとつで通じる。 */
+const SHAPE_TORII = [
+  BOX(0.30, 0.025, 0.30, 0.0125, COL.stone),                   // 基壇
+  BOX(0.05, 0.32, 0.05, 0.185, COL.vermil, -0.135, 0),         // 柱
+  BOX(0.05, 0.32, 0.05, 0.185, COL.vermil, 0.135, 0),
+  BOX(0.33, 0.035, 0.055, 0.275, COL.vermil),                  // 貫
+  BOX(0.44, 0.05, 0.08, 0.370, COL.vermil),                    // 笠木
+];
+
+/** 都城跡・歴史都市。朱塗りの大門と、脇の小さな家。 */
+const SHAPE_GATE = [
+  BOX(0.36, 0.045, 0.26, 0.0225, COL.stone),
+  BOX(0.055, 0.16, 0.055, 0.125, COL.vermil, -0.115, 0),
+  BOX(0.055, 0.16, 0.055, 0.125, COL.vermil, 0.115, 0),
+  PYR(0.29, 0.085, 0.2475, COL.roof, 4),
+  BOX(0.10, 0.055, 0.10, 0.0725, COL.wall, 0.235, 0.155),      // 家並み
+  PYR(0.095, 0.05, 0.125, COL.roof2, 4, 0.235, 0.155),
+];
+
+/** 集落遺跡。茅葺きの竪穴住居を3棟。 */
+const SHAPE_HUT = [
+  PYR(0.25, 0.22, 0.11, COL.thatch, 8, 0, 0, 0),
+  PYR(0.15, 0.135, 0.0675, COL.thatch, 8, 0.245, 0.115, 0.4),
+  PYR(0.125, 0.105, 0.0525, COL.thatch, 8, -0.20, -0.165, 0.9),
+];
+
+/** 古墳。前方後円と周濠。 */
+const SHAPE_MOUND = [
+  BOX(0.66, 0.016, 0.52, 0.008, COL.moat),                     // 周濠
+  PYR(0.28, 0.125, 0.0785, COL.mound, 12, 0, -0.055, 0),       // 後円部
+  PYR(0.195, 0.08, 0.056, COL.mound, 4, 0, 0.215, 0),          // 前方部
+];
+
+/** 古戦場。旗指物が並ぶ。 */
+const SHAPE_BANNER = [
+  BOX(0.028, 0.38, 0.028, 0.19, COL.timber, -0.12, 0.02),
+  BOX(0.028, 0.32, 0.028, 0.16, COL.timber, 0.105, -0.055),
+  BOX(0.028, 0.27, 0.028, 0.135, COL.timber, 0.02, 0.15),
+  BOX(0.115, 0.15, 0.014, 0.305, COL.vermil, -0.06, 0.02),
+  BOX(0.10, 0.125, 0.014, 0.2575, 0xf3ece0, 0.16, -0.055),
+  BOX(0.09, 0.11, 0.014, 0.215, COL.vermil, 0.075, 0.15),
+];
+
+const SHAPE_OF = {
+  castle: SHAPE_KEEP,   castle_ruin: SHAPE_RUIN, palace: SHAPE_HALL,
+  shrine: SHAPE_TORII,  battlefield: SHAPE_BANNER, settlement: SHAPE_HUT,
+  capital: SHAPE_GATE,  town: SHAPE_GATE,        tomb: SHAPE_MOUND,
+  fort: SHAPE_RUIN,
+  // 跡地相の既定の姿（G-184。`mapcore.js SITE_PHASE_KIND`）。段を書けばそちらが勝つ
+  ruins: SHAPE_RUIN,
+};
+
+const partTop = (pt) => pt.y + (pt.kind === 'box' ? pt.size[1] : pt.h) / 2;
+const shapeHeight = (shape) => shape.reduce((m, pt) => Math.max(m, partTop(pt)), 0);
+/**
+ * 足元の広がり（接地影と、山を避ける半径に使う）。
+ * **台形柱（TRZ）は `r` を持たない**。2026-08-28 まで `pt.r` を読んでいたので
+ * 石垣を含む形（天守・城跡・城柵）の半径が全部 NaN になり、接地影の行列が NaN、
+ * 山のクリアランスも効かない状態だった（`tools/shapes.mjs` で実測して発見）。
+ */
+const shapeRadius = (shape) => shape.reduce((m, pt) => {
+  const half = pt.kind === 'box' ? Math.max(pt.size[0], pt.size[2]) / 2
+             : pt.kind === 'trapez' ? Math.max(pt.rb, pt.rt)
+             : pt.r;
+  return Math.max(m, Math.hypot(pt.x || 0, pt.z || 0) + half);
+}, 0);
+
+/** 接地影のテクスチャ（中心が濃い円）。落ち影とは別に、物が地面に「乗っている」感を出す。 */
+function makeContactShadowTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 62);
+  g.addColorStop(0.00, 'rgba(44,62,72,0.42)');
+  g.addColorStop(0.45, 'rgba(44,62,72,0.24)');
+  g.addColorStop(1.00, 'rgba(44,62,72,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+/**
+ * 地点ごとの「置き場所と寸法」を先に決める。山のクリアランス（`footR`）が要るので
+ * **buildHills より前**に走らせる。v0.2 はこれを buildMarkers の中でやっていたため、
+ * 山を植える時点では足元の広さが分かっていなかった。
+ */
+function prepareSites() {
+  for (const s of SITES) {
+    const p = proj.project(s.lon, s.lat);
+    s.pos = new THREE.Vector3(p.x, MARKER_Y, p.z);
+    s.x = p.x; s.z = p.z;                          // planHills が読む
+    s.onLand = isLand(s.lon, s.lat);
+    s.mscale = MARKER_S * (TIER_S[s.tier] || TIER_S[2]);
+    // 密集で譲る倍率（G-11）。1.0 = 誰にも譲っていない。毎フレーム `updateLabels` が解く。
+    s.relief = 1;
+    // timeline で姿が変わる地点は、取りうる kind をぜんぶ持つ（スロットを確保する）
+    s.kinds = kindsOf(s);
+    s.slots = new Map();
+    // 山を避ける半径は「取りうる姿のうち最大」で決める。時代を動かすたびに
+    // 山が生えたり消えたりしたら、地形が信用できなくなる。
+    s.footR = Math.max(...s.kinds.map((k) => shapeRadius(SHAPE_OF[k] || SHAPE_KEEP))) * s.mscale;
+    applyEraShape(s, ERAS[state.eraIndex].id);
+  }
+}
+
+/** その時代の姿（kind・形・丈・足元）を1地点に反映する。 */
+function applyEraShape(s, eraId) {
+  // ERAS を渡すのは存続の二相を見るため（G-184）。渡さないと跡地相でも機能期の姿が出る
+  const k = kindAt(s, eraId, ERA_IDS, ERAS);
+  const changed = s.viewKind !== k;
+  s.viewKind = k;
+  s.shape = SHAPE_OF[k] || SHAPE_KEEP;
+  s.topY = shapeHeight(s.shape) * s.mscale;        // ラベルを浮かせる高さ
+  s.viewFootR = shapeRadius(s.shape) * s.mscale;
+  return changed;
+}
+
+function buildMarkers() {
+  const n = SITES.length;
+
+  // 海に落ちる地点（厳島など、簡略化した海岸線からはみ出す島）に小さな島台を置く
+  const offshore = SITES.filter((s) => !s.onLand);
+  if (offshore.length) {
+    const padGeo = new THREE.CylinderGeometry(0.42, 0.50, LAND_H + 0.05, 11, 1);
+    padGeo.translate(0, -(LAND_H + 0.05) / 2, 0);
+    const im = new THREE.InstancedMesh(facet(padGeo), toon(0xb9d6a2), offshore.length);
+    im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false;
+    offshore.forEach((s, k) => {
+      tmpQ.identity();
+      tmpP.set(s.pos.x, LAND_H, s.pos.z);
+      tmpSc.set(1, 1, 1);
+      im.setMatrixAt(k, tmpM.compose(tmpP, tmpQ, tmpSc));
+    });
+    im.instanceMatrix.needsUpdate = true;
+    scene.add(im);
+    console.info('[map] offshore pads:', offshore.map((s) => s.ja).join(', '));
+  }
+
+  // 常に見えている足元の円盤（時代外でも「ここに地点がある」ことは示す）。
+  // **行列は `refreshMarkerMatrices` が持つ**（接地影と同じ扱い）——ここでも組むと
+  // 同じ合成が2箇所に書かれ、片方だけ直したときに円盤だけ畳み忘れる（G-224）。
+  const discGeo = new THREE.CylinderGeometry(0.19, 0.21, 0.02, 16, 1);
+  discGeo.translate(0, 0.01, 0);
+  padMesh = new THREE.InstancedMesh(discGeo, toon(COL.pad), n);
+  padMesh.receiveShadow = true;
+  padMesh.frustumCulled = false;
+  scene.add(padMesh);
+
+  // 柔らかい接地影
+  const shGeo = new THREE.PlaneGeometry(1, 1);
+  shGeo.rotateX(-Math.PI / 2);
+  shadowMesh = new THREE.InstancedMesh(shGeo, new THREE.MeshBasicMaterial({
+    map: makeContactShadowTexture(), transparent: true, depthWrite: false, fog: true,
+  }), n);
+  shadowMesh.renderOrder = 2;
+  shadowMesh.frustumCulled = false;
+  scene.add(shadowMesh);
+
+  // kind ごとに InstancedMesh を束ねる。**timeline を持つ地点は複数の kind に登録し、
+  // その時代でない姿は scale 0 で畳む**（tech-ishi §4.3）。これで「同じ場所が時代ごとに
+  // 姿を変える」がインスタンシングを壊さずに書ける。
+  const byKind = new Map();
+  for (const s of SITES) {
+    for (const k of s.kinds) {
+      if (!byKind.has(k)) byKind.set(k, []);
+      byKind.get(k).push(s);
+    }
+  }
+  for (const [kind, list] of byKind) {
+    const shape = SHAPE_OF[kind] || SHAPE_KEEP;
+    const meshes = [];
+    for (const part of shape) {
+      let geo;
+      if (part.kind === 'box') {
+        geo = new THREE.BoxGeometry(part.size[0], part.size[1], part.size[2]);
+      } else if (part.kind === 'trapez') {
+        geo = facet(new THREE.CylinderGeometry(part.rt, part.rb, part.h, part.seg, 1));
+        geo.rotateY(part.rot);
+      } else {
+        geo = facet(new THREE.ConeGeometry(part.r, part.h, part.seg, 1));
+        geo.rotateY(part.rot);
+      }
+      geo.translate(part.x || 0, part.y, part.z || 0);
+      const im = new THREE.InstancedMesh(geo, toon(part.color), list.length);
+      im.castShadow = true;
+      im.receiveShadow = true;
+      im.frustumCulled = false;
+      scene.add(im);
+      meshes.push(im);
+    }
+    // 索引を持たせておく（refreshMarkerMatrices が sites 順に回すため）
+    list.forEach((s, i) => { s.slots.set(kind, i); });
+    markerGroups.push({ kind, sites: list, meshes });
+  }
+  console.info('[map] markers:', [...byKind].map(([k, v]) => `${k}:${v.length}`).join(' '),
+               '/ 時代で姿が変わる地点:', SITES.filter(hasTimeline).map((s) => s.id).join(',') || 'なし');
+
+  // 選択中を示すリング
+  const ringGeo = new THREE.RingGeometry(0.30, 0.39, 36);
+  ringGeo.rotateX(-Math.PI / 2);
+  highlightRing = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({
+    color: COL.gold, transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide,
+  }));
+  highlightRing.renderOrder = 3;
+  highlightRing.visible = false;
+  scene.add(highlightRing);
+}
+
+/** alive の値と「その時代の姿」からマーカーの変換行列を作り直す。 */
+function refreshMarkerMatrices() {
+  // インセットが受け持つ地点（沖縄）は、送り始めたら**本体の絵の側でも畳む**
+  // （G-224・ハヤ I-1 の趣旨）。枠・中身・ラベルだけを畳んでも、本体のカメラが描いている
+  // 同じ模型は残る——`#erabar` の薄紙は台といっしょに上へ流れるのに、キャンバスは
+  // `fixed` で画面に残るので、薄紙が退いたぶんだけ首里城が**見切れの帯に現れる**
+  // （1280x720 実測: 帯の x57〜213px が屋根と接地影で埋まった）。
+  // scale 0 は「その時代の姿でない kind」と同じ畳み方で、描画コールは増えない。
+  const folded = insetFolded(window.scrollY);
+  for (const g of markerGroups) {
+    for (let k = 0; k < g.sites.length; k++) {
+      const s = g.sites[k];
+      // その時代の姿でない kind のスロットは畳む（描画コールは増えない）。
+      // 寄っている間、主役以外は一段小さくして退く（ラベルの退色と対にする）。
+      const back = state.zoom && state.zoom !== s.id ? ZOOM_BACK : 1;
+      const hide = folded && isInsetSite(s);
+      // `s.relief` は密集で譲った倍率（G-11）。**0 にはならない**——譲るのは大きさだけで、
+      // 消すことは無い（江戸の近畿に城が密集しているのは史実の情報で、間引いたら嘘になる）。
+      const sc = (s.viewKind === g.kind && !hide)
+        ? s.mscale * back * markerGrow(s.alive, s.relief) : 0;
+      tmpQ.identity();
+      tmpP.set(s.pos.x, MARKER_Y, s.pos.z);
+      tmpSc.set(sc, sc, sc);
+      tmpM.compose(tmpP, tmpQ, tmpSc);
+      for (const im of g.meshes) im.setMatrixAt(k, tmpM);
+    }
+    for (const im of g.meshes) im.instanceMatrix.needsUpdate = true;
+  }
+  SITES.forEach((s, k) => {
+    const back = state.zoom && state.zoom !== s.id ? ZOOM_BACK : 1;
+    const hide = folded && isInsetSite(s);
+    const r = hide ? 0 : s.viewFootR * 2.3 * back * markerGrow(s.alive, s.relief);
+    tmpQ.identity();
+    tmpP.set(s.pos.x, MARKER_Y + 0.006, s.pos.z);
+    tmpSc.set(r, 1, r);
+    shadowMesh.setMatrixAt(k, tmpM.compose(tmpP, tmpQ, tmpSc));
+    // 足元の円盤も同じ畳みに乗せる。**模型と影だけ畳んで円盤を残すと、
+    // 帯に「地点だけ」が点として残る**——畳んだことにならない。
+    // 置き場所は不変なので、ここで作るのは scale だけが変わる同じ行列である。
+    if (padMesh) {
+      tmpP.set(s.pos.x, MARKER_Y, s.pos.z);
+      tmpSc.set(hide ? 0 : 1, hide ? 0 : 1, hide ? 0 : 1);
+      padMesh.setMatrixAt(k, tmpM.compose(tmpP, tmpQ, tmpSc));
+    }
+  });
+  shadowMesh.instanceMatrix.needsUpdate = true;
+  if (padMesh) padMesh.instanceMatrix.needsUpdate = true;
+}
+
+/* ------------------------------------------------------------------ ラベル */
+
+/**
+ * 地図上の短い呼び名。正式名（ja/en）はカードで出す。
+ * **timeline を持つ地点は時代ごとに呼び名が変わる**（江戸城→皇居）。
+ */
+const shortName = (s) => labelAt(s, ERAS[state.eraIndex].id, ERA_IDS, state.lang, ERAS);
+
+function buildLabels() {
+  const host = document.getElementById('labels');
+  for (const s of SITES) {
+    const el = document.createElement('div');
+    el.className = 'lbl';
+    el.textContent = shortName(s);
+    el.style.display = 'none';
+    el.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
+    el.addEventListener('click', (e) => { e.stopPropagation(); selectSite(s.id, true); });
+    host.appendChild(el);
+    labelEls.set(s.id, el);
+  }
+}
+
+const labelItems = [];
+/** 譲り合い（G-11）の材料。**フルサイズ**の画面箱と足元をここに集める。 */
+const reliefItems = [];
+const tmpV2 = new THREE.Vector3();
+
+/**
+ * 密集した所で模型に大きさを譲らせる（G-11）。**間引かない・動かさない。**
+ *
+ * なぜここでやるか: `updateLabels` は毎フレーム全地点を投影している。同じ投影を
+ * 2回書くと、いつか片方だけ直して「名札は退いたのに模型は退かない」が起きる。
+ * 材料（足元・フルサイズの箱・優先度）は名札とまったく同じ順序で並べる。
+ *
+ * 解いた倍率は `s.relief` に置き、変わったフレームだけ `markersDirty` を立てる
+ * ——行列の作り直しは重いので、動いていない画面で毎フレーム回さない。
+ */
+function updateRelief(w, h, dist, folded) {
+  reliefItems.length = 0;
+  for (const s of SITES) {
+    // 優先度は**この1箇所でだけ**解く。以前は模型（足元で投影）と名札（天端で投影）が
+    // それぞれ `labelPriority` を呼んでいて、depth の出どころが違うために
+    // **順序が食い違いうる**状態だった（「大きく残った城に名前が無い」が起きる形）。
+    // いまは足元の depth で1回だけ解き、`updateLabels` はこの値を読むだけである。
+    tmpV2.set(s.pos.x, MARKER_Y, s.pos.z);
+    tmpV2.project(camera);
+    s.fdepth = tmpV2.z;
+    s.fx = (tmpV2.x * 0.5 + 0.5) * w;
+    s.fy = (-tmpV2.y * 0.5 + 0.5) * h;
+    s.prio = labelPriority({
+      tier: s.tier, alive: s.alive, depth: s.fdepth,
+      selected: state.selected === s.id, hovered: state.hovered === s.id,
+    });
+    const standing = s.alive > 0.005 && !(folded && isInsetSite(s));
+    if (!standing) continue;
+    // 模型の実寸は「その時代の姿 × 生存 × 寄りの退き」。**譲り(relief)は掛けない**
+    // ——譲りを材料に混ぜると前フレームの答えが次の答えを動かし、絵が毎フレーム震える。
+    const back = state.zoom && state.zoom !== s.id ? ZOOM_BACK : 1;
+    // 曲線そのものは markerGrow の1本（G-241）。**ここだけ relief に 1 を渡す**のが
+    // 上のコメントの「譲りは掛けない」で、式を写したのではなく引数で言い分けている。
+    const grow = back * markerGrow(s.alive, 1);
+    const r = s.viewFootR * grow, hy = s.topY * grow;
+    let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
+    let behind = false;
+    for (let c = 0; c < 8; c++) {
+      tmpV2.set(s.pos.x + (c & 1 ? r : -r), MARKER_Y + (c & 4 ? hy : 0), s.pos.z + (c & 2 ? r : -r));
+      tmpV2.project(camera);
+      if (!(tmpV2.z > -1 && tmpV2.z < 1)) { behind = true; break; }
+      const sx = (tmpV2.x * 0.5 + 0.5) * w, sy = (-tmpV2.y * 0.5 + 0.5) * h;
+      if (sx < left) left = sx;
+      if (sx > right) right = sx;
+      if (sy < top) top = sy;
+      if (sy > bottom) bottom = sy;
+    }
+    if (behind || !(right > left)) continue;
+    // 軸は足元（接地点）。模型はここを動かさずに縮む。
+    // `hold` = 読者が名指ししている地点（選択・ホバー）。**そこは譲らせない**
+    // ——密集の中の1つを押したのに小さいままでは、押した意味が画面に出ない。
+    reliefItems.push({
+      id: s.id, ax: s.fx, ay: s.fy, left, right, top, bottom,
+      hold: state.selected === s.id || state.hovered === s.id,
+    });
+  }
+  const solved = relieveCrowding(reliefItems, { floor: reliefFloor(dist) });
+  let changed = false;
+  for (const s of SITES) {
+    const f = solved.has(s.id) ? solved.get(s.id) : 1;
+    // 0.004 は「1フレームぶんの震え」を無視する遊び。ここを 0 にすると
+    // 浮動小数の最下位が動くたびに全模型の行列を作り直すことになる。
+    if (Math.abs(f - s.relief) > 0.004) { s.relief = f; changed = true; }
+  }
+  if (changed) markersDirty = true;
+}
+
+function updateLabels(w, h) {
+  labelItems.length = 0;
+  // 送り始めたら沖縄は畳む（G-224・ハヤ I-1 の前半＝updateLabels のラベル配置経路）。**`display:none` を後から上書きするのでは
+  // なく、`onScreen` を落として配置計算そのものから外す**——ここが「出さないものは配置計算に
+  // 入れない」という下の規範と同じ理由で、入れたまま隠すと衝突判定にだけ勝ち、
+  // かつ `#erabar` の薄紙が上へ流れた瞬間に**箱を失った生テキスト**として残る
+  // （1280x720 実測: 首里城のラベルが白背景・尻尾を失って浮いた）。
+  // `onScreen` を落とすので `pickAt` からも同時に外れる（見えないものは押せない）。
+  const folded = insetFolded(window.scrollY);
+  const dist = camera.position.distanceTo(controls.target);
+  // 密集の譲り合いを先に解く（G-11）。**名札より先**でなければならない——
+  // 譲った模型は低くなるので、名札の吊り位置がその高さに追従しないと
+  // 「小さくなった城の、遠く頭上に名前が浮く」ことになる。
+  updateRelief(w, h, dist, folded);
+  // 同時に出す上限（LOD）。俯瞰では 25件で頭打ちにする —— 実測で「34px以上離して
+  // 置ける地点数は20〜25件」（tech-ishi §4.2）。ここを開けておくと、地点を増やすほど
+  // 画面の情報が減る。
+  const budget = labelBudget(dist);
+  for (const s of SITES) {
+    // 名札の吊り高さに**譲り（relief）は掛けない**。掛けたら実測で名札が1枚減り、
+    // 消えたのは**大阪城（江戸の呼び名「徳川の城」）**だった——譲って低くなった模型の
+    // 天端どうしが近づき、名札の箱が衝突して片方が落ちる（近畿 2件→1件・残ったのは古墳）。
+    // そもそもこの高さは模型の天端ではない（模型は 0.14..1.0 で伸びるのに、ここは 0.34..1.0）
+    // ——**「地点の上に浮かべる」ための高さ**であって、屋根に貼る高さではない。
+    // 掛けないと尻尾が屋根より少し上で終わるが、1280x720 俯瞰で 18px であり絵で確かめて許容した。
+    tmpV.set(s.pos.x, MARKER_Y + s.topY * (0.34 + 0.66 * s.alive) + 0.06, s.pos.z);
+    tmpV.project(camera);
+    const visible = tmpV.z > -1 && tmpV.z < 1;
+    s.sx = (tmpV.x * 0.5 + 0.5) * w;
+    s.sy = (-tmpV.y * 0.5 + 0.5) * h;
+    s.onScreen = visible && s.sx > -60 && s.sx < w + 60 && s.sy > -40 && s.sy < h + 40
+                 && !(folded && isInsetSite(s));
+    if (!s.onScreen) continue;
+    // **当たり判定の的は、名札の吊り位置とは別に取る**（G-241）。上の `sx/sy` は
+    // 「地点の上に浮かべる」ための高さ（0.34..1.0・譲りを掛けない）であって、
+    // 模型の姿ではない。`pickAt` はここを流用して更に 16px 上を的にしていたので、
+    // 譲った城では的が**絵の 48px 上**に浮き、1280x720・江戸で姫路城の絵を押すと
+    // **大仙陵古墳**のカードが開いていた（実クリックで確認）。的は絵に付ける。
+    tmpV.set(s.pos.x, MARKER_Y + pickAnchorHeight(s.topY, s.alive, s.relief), s.pos.z);
+    tmpV.project(camera);
+    s.px = (tmpV.x * 0.5 + 0.5) * w;
+    s.py = (-tmpV.y * 0.5 + 0.5) * h;
+    const sel = state.selected === s.id, hov = state.hovered === s.id;
+    // **出さないものは配置計算に入れない。** 入れると「その時代にいない地点」が
+    // 衝突判定に勝って、生きている地点の名前を消す（表示条件と配置条件がズレていた）。
+    if (!(s.alive > LABEL_ALIVE_MIN || sel || hov)) continue;
+    // 選択中 > ホバー > **tier** > その時代に存在 > 手前 の順で優先。
+    // tier が入っていなかったのが「100件にすると本物の城の名前が11→8件に減る」の正体。
+    // 値そのものは `updateRelief` が足元の depth で解いた1本を読む（G-11）。
+    const priority = s.prio;
+    const chars = shortName(s).length;
+    // DOM 側は translate(-50%,-100%) で「点の 24px 上」に吹き出しの下端が来る。
+    // ラベル箱の中心はさらに高さの半分ぶん上。ここを合わせないと
+    // 重なり判定が実際の見た目と 20px ほどずれる。
+    labelItems.push({
+      id: s.id, x: s.sx, y: s.sy - 24 - 11,
+      w: state.lang === 'ja' ? chars * 12 + 20 : chars * 6.6 + 20,
+      h: 22, priority,
+    });
+  }
+  const keep = layoutLabels(labelItems, { padding: 3, limit: budget });
+
+  for (const s of SITES) {
+    const el = labelEls.get(s.id);
+    const sel = state.selected === s.id, hov = state.hovered === s.id;
+    const show = s.onScreen && (keep.has(s.id) || sel) && (s.alive > LABEL_ALIVE_MIN || sel || hov);
+    if (!show) {
+      if (el.style.display !== 'none') el.style.display = 'none';
+      continue;
+    }
+    if (el.style.display !== 'block') el.style.display = 'block';
+    const txt = shortName(s);
+    if (el.textContent !== txt) el.textContent = txt;
+    el.style.transform = `translate3d(${Math.round(s.sx)}px, ${Math.round(s.sy - 24)}px, 0) translate(-50%, -100%)`;
+    const cls = 'lbl' + (sel || hov ? ' on' : s.alive < 0.65 ? ' dim' : '');
+    if (el.className !== cls) el.className = cls;
+  }
+}
+
+/* --------------------------------------------------------------------- UI */
+
+const $ = (id) => document.getElementById(id);
+/** ただの文字を1個のノードにする。`createTextNode` を使わないのは、
+ *  build/dryrun.mjs の偽DOMが要素しか作れないため（実走の検査を通したい）。 */
+const span = (text) => {
+  const e = document.createElement('span');
+  e.textContent = text;
+  return e;
+};
+
+function initUI() {
+  const slider = $('era-slider');
+  slider.max = String(ERAS.length - 1);
+  slider.value = String(state.eraIndex);
+  slider.addEventListener('input', () => setEra(Number(slider.value)));
+  slider.addEventListener('pointerdown', () => stopPlay());
+
+  const ticks = $('era-ticks');
+  ERAS.forEach((e, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.i = String(i);
+    b.textContent = e.ja;
+    b.addEventListener('click', () => { stopPlay(); setEra(i); });
+    ticks.appendChild(b);
+  });
+
+  $('playbtn').addEventListener('click', () => (state.playing ? stopPlay() : startPlay()));
+  $('langbtn').addEventListener('click', toggleLang);
+  $('resetbtn').addEventListener('click', exitZoom);
+  $('card-close').addEventListener('click', exitZoom);
+  // H-2: 「戻す」はカードを閉じること（退避しているのは #card.open の間だけなので、
+  // 閉じれば要約文と近道が自分で戻る。戻す専用の状態は持たない）。
+  $('era-restore').addEventListener('click', exitZoom);
+
+  const canvas = $('scene');
+  let downX = 0, downY = 0, downT = 0;
+  canvas.addEventListener('pointerdown', (e) => { downX = e.clientX; downY = e.clientY; downT = performance.now(); });
+  canvas.addEventListener('pointerup', (e) => {
+    const moved = Math.hypot(e.clientX - downX, e.clientY - downY);
+    if (moved > 10 || performance.now() - downT > 700) return; // ドラッグは選択にしない
+    const hit = pickAt(e.clientX, e.clientY);
+    if (hit) selectSite(hit.id, true);
+    else exitZoom();
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'touch') return;
+    const hit = pickAt(e.clientX, e.clientY);
+    const id = hit ? hit.id : null;
+    if (id !== state.hovered) {
+      state.hovered = id;
+      canvas.style.cursor = id ? 'pointer' : '';
+    }
+  });
+  canvas.addEventListener('pointerleave', () => { state.hovered = null; });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') exitZoom();
+    if (e.key === ' ' && e.target === document.body) { e.preventDefault(); state.playing ? stopPlay() : startPlay(); }
+  });
+}
+
+/**
+ * 画面座標に最も近いマーカーを返す（Raycasterは使わない）。
+ *
+ * **的は `px/py`＝描かれている模型の胴**（`updateLabels` が毎フレーム解く）。
+ * 以前は名札の吊り位置 `sx/sy` の 16px 上を的にしていて、**絵と的が最大 48px ずれて**
+ * いた（G-241 実測）。半径 34px は据え置く——**近すぎる隣を弾くための半径ではなく、
+ * 指の太さの半径**である。曖昧さは半径ではなく「いちばん近い的が勝つ」で解く。
+ */
+function pickAt(cx, cy) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  const x = cx - rect.left, y = cy - rect.top;
+  let best = null, bestD = PICK_RADIUS;
+  for (const s of SITES) {
+    if (!s.onScreen) continue;
+    // **見えていないものは押せない**（`updateLabels` の名札と同じ線を使う——
+    // 線を2本持つと「名前が出ていないのにカードだけ開く」が必ず起きる）。
+    // これが無かったので、江戸の画面で**その時代に居ない地点**のカードが開いていた。
+    if (!(s.alive > LABEL_ALIVE_MIN)) continue;
+    if (s.px == null) continue;                 // まだ1度も解かれていない（初回フレーム）
+    const d = Math.hypot(s.px - x, s.py - y) - s.alive * 8;
+    if (d < bestD) { bestD = d; best = s; }
+  }
+  return best;
+}
+
+function setEra(i, silent = false) {
+  state.eraIndex = clamp(i, 0, ERAS.length - 1);
+  const era = ERAS[state.eraIndex];
+  // 「時代を動かすと世界が変わる」の実装はここ。出入り（alive）だけでなく、
+  // **同じ場所の姿（kind＝シルエット）と呼び名**を時代ごとに差し替える。
+  let shapeChanged = false;
+  for (const s of SITES) {
+    s.aliveTarget = siteInEra(s, era.id) ? 1 : 0;
+    if (applyEraShape(s, era.id)) shapeChanged = true;
+  }
+  if (shapeChanged) markersDirty = true;
+
+  $('era-slider').value = String(state.eraIndex);
+  const ja = state.lang === 'ja';
+  $('era-name').textContent = ja ? era.label_ja : era.label_en;
+  $('era-years').textContent = ja ? era.years_ja : era.years_en;
+  $('era-sum').textContent = ja ? era.summary_ja : era.summary_en;
+
+  const list = SITES.filter((s) => siteInEra(s, era.id));
+  $('era-count').textContent = ja ? `この時代の地点 ${list.length}件` : `${list.length} site${list.length === 1 ? '' : 's'}`;
+
+  for (const b of $('era-ticks').children) {
+    b.setAttribute('aria-current', String(Number(b.dataset.i) === state.eraIndex));
+    b.textContent = ja ? ERAS[Number(b.dataset.i)].ja : ERAS[Number(b.dataset.i)].en;
+  }
+
+  renderChips(list);
+  renderCard();
+  if (!silent) state.lastInput = performance.now();
+}
+
+function renderChips(list) {
+  const host = $('sitechips');
+  const keepScroll = host.scrollLeft; // 作り直すとスクロールが先頭に戻るので覚えておく
+  host.textContent = '';
+  if (!list.length) {
+    const d = document.createElement('div');
+    d.className = 'empty';
+    d.textContent = state.lang === 'ja'
+      ? 'この時代の代表地点は v0 データセットには未収録です（拡充予定）。'
+      : 'No sites for this era in the v0 dataset yet (more to come).';
+    host.appendChild(d);
+    return;
+  }
+  for (const s of list) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'sitechip' + (state.selected === s.id ? ' on' : '');
+    // 短冊の文字は**その時代の呼び名**（「秀吉の城」等）に変わるので、文字は地点の名前ではない。
+    // どの地点の短冊かを DOM 側に残しておく。`build/check-layout.mjs` の使い方は2通りで、
+    // **走査（sweep）は並び順（index）で押し**、`dataset.id` は「どの30件を回ったか」の
+    // 網羅集合の鍵として読む。`[data-id]` で名指しして引くのは起点注記の検査
+    // （`selectById` / `readSpanRows`）の方である。**どちらも文字では引かない**
+    // ——文字は時代で変わるので、文字で引く検査は時代を送った瞬間に的を外す。
+    b.dataset.id = s.id;
+    b.textContent = shortName(s);
+    b.addEventListener('click', () => selectSite(s.id, true));
+    host.appendChild(b);
+  }
+  host.scrollLeft = keepScroll;
+}
+
+function selectSite(id, fly) {
+  state.selected = id;
+  state.lastInput = performance.now();
+  renderCard();
+  renderChips(SITES.filter((s) => siteInEra(s, ERAS[state.eraIndex].id)));
+  if (fly) zoomTo(id);
+}
+
+function renderCard() {
+  const card = $('card');
+  const s = SITES.find((x) => x.id === state.selected);
+  if (!s) { card.classList.remove('open'); return; }
+  const ja = state.lang === 'ja';
+  const era = ERAS[state.eraIndex];
+
+  const kindMap = (ja ? sitesDoc.meta.kinds : sitesDoc.meta.kinds_en) || {};
+  // その時代に効いている timeline の項目。あればカードの主役はそちらになる
+  //（＝スライダーを動かすと、寄っている地点の呼び名・肩書き・説明が入れ替わる）。
+  const tl = timelineAt(s, era.id, ERA_IDS, ERAS);
+  $('card-kind').textContent = kindMap[s.viewKind || s.kind] || s.viewKind || s.kind;
+  $('card-title').textContent = tl
+    ? (ja ? (tl.label_ja || s.ja) : (tl.label_en || s.en))
+    : (ja ? s.ja : s.en);
+  $('card-sub').textContent = tl
+    ? (ja ? `${era.ja}　${s.ja}` : `${era.en} · ${s.en}`)
+    : (ja ? `${s.pref_ja}　${s.kana || ''}` : `${s.pref_en} Prefecture · ${s.ja}`);
+  $('card-desc').textContent = tl ? (ja ? tl.note_ja : tl.note_en) : (ja ? s.desc_ja : s.desc_en);
+  // timeline を出している間は、地点そのものの解説を小さく下に残す（消さない）
+  $('card-desc2').textContent = tl ? (ja ? s.desc_ja : s.desc_en) : '';
+
+  const meta = $('card-meta');
+  meta.textContent = '';
+  const rows = [
+    [ja ? '年代' : 'Span', lifespanText(s, state.lang)],
+  ];
+  // 跡地相（G-184）。**「年代」は機能期の年**なので、784年に終わった都が2026年の
+  // 地図に出ている理由は、この行が無いと画面のどこにも書かれていないことになる。
+  const phase = sitePhaseText(s, state.lang);
+  if (phase) rows.push([ja ? '跡地として' : 'As a site', phase]);
+  rows.push(
+    [ja ? '天守など' : 'Keep', s.keep_built ? (ja ? `${s.keep_built}年に整備／再建` : `built or rebuilt ${s.keep_built}`) : '—'],
+    [ja ? '座標' : 'Coords', `${s.lat.toFixed(4)}, ${s.lon.toFixed(4)}`],
+  );
+  for (const [k, v] of rows) {
+    const row = document.createElement('div');
+    row.className = 'meta-row';
+    const dt = document.createElement('dt'); dt.textContent = k;
+    const dd = document.createElement('dd'); dd.textContent = v;
+    row.append(dt, dd);
+    meta.appendChild(row);
+  }
+
+  const eraBox = $('card-eras');
+  eraBox.textContent = '';
+  for (const e of ERAS) {
+    if (!siteInEra(s, e.id)) continue;
+    const t = document.createElement('span');
+    t.className = 'etag' + (e.id === era.id ? ' now' : '');
+    t.textContent = ja ? e.ja : e.en;
+    eraBox.appendChild(t);
+  }
+
+  renderTimeline(s, era, ja);
+
+  // 出典は配列。1件ずつ「指定名称（指定区分）／指定年月日／発表主体／取得日」を出す。
+  // 根拠が2〜3層に分かれるのが正常な姿で、1本のURL文字列では
+  // 「どの事実の根拠か」が消える（sources-shino.md §2）。
+  const srcBox = $('card-src');
+  srcBox.textContent = '';
+  const srcs = Array.isArray(s.source) ? s.source : [];
+  if (!srcs.length) {
+    srcBox.textContent = ja
+      ? '出典: 未設定。公開前に一次資料・公式サイトのURLをここに入れます。'
+      : 'Source: not set. A primary or official source URL goes here before launch.';
+  } else {
+    const head = document.createElement('div');
+    head.className = 'src-head';
+    head.textContent = ja ? '出典' : 'Sources';
+    srcBox.appendChild(head);
+    for (const src of srcs) {
+      const item = document.createElement('div');
+      item.className = 'src-item';
+      const label = src.name || src.authority || src.url;
+      // link_policy: forbidden ＝ 相手が「当サイトへのリンクはお断り」を明示している経路。
+      // その出典は **<a> にしない**（href を持つ要素を一切作らない）。
+      // ただしリンクを外すことと出典を消すことは違う —— 名称・発表主体・取得日は
+      // テキストとして必ず残す（REG-007 第11条第1項）。
+      // 検査は build/check-linkpolicy.mjs が**実際に描かせて** <a> の有無と
+      // 名称の残存を見るので、コメントで「対応した」と書いても緑にはならない。
+      const forbidden = src.link_policy === 'forbidden';
+      const nameEl = document.createElement(forbidden ? 'b' : 'a');
+      nameEl.textContent = label;
+      if (forbidden) {
+        nameEl.className = 'src-name';
+      } else {
+        nameEl.href = src.url;
+        nameEl.target = '_blank';
+        nameEl.rel = 'noopener noreferrer';
+      }
+      item.appendChild(nameEl);
+      const bits = [];
+      if (src.category) bits.push(src.category);
+      if (src.designated) bits.push((ja ? '指定 ' : 'designated ') + src.designated);
+      if (src.authority && src.authority !== label) bits.push(src.authority);
+      if (src.retrieved) bits.push((ja ? '取得 ' : 'retrieved ') + src.retrieved);
+      // リンクが無い理由を読者に伏せない（「出典が弱い」ではなく「先方の方針」である）。
+      if (forbidden) bits.push(ja ? 'リンク非掲載（先方の方針）' : 'no link (publisher policy)');
+      if (bits.length) {
+        const m = document.createElement('span');
+        m.className = 'src-meta';
+        m.textContent = ' — ' + bits.join(' / ');
+        item.appendChild(m);
+      }
+      srcBox.appendChild(item);
+    }
+    // 指定そのものが存在しない地点（陵墓など）は、その理由を隠さずに書く。
+    if (s.no_designation) {
+      const note = document.createElement('div');
+      note.className = 'src-note';
+      note.textContent = (ja ? '※ ' : 'Note: ') + s.no_designation;
+      srcBox.appendChild(note);
+    }
+  }
+
+  card.classList.add('open');
+}
+
+/**
+ * 1地点タイムラプス。**その場所が時代ごとにどう変わったか**を、各行に出典つきで出す。
+ * 「時代を動かすと土地の意味が変わる」を、地図の上だけでなく言葉でも見せる部分。
+ * 出典を行ごとに持つのは、`1457年に太田道灌が築いた` のような**個別の事実**の根拠が
+ * 地点全体の指定情報とは別物だからである（sources-shino §2）。
+ */
+function renderTimeline(s, era, ja) {
+  const box = $('card-tl');
+  box.textContent = '';
+  if (!hasTimeline(s)) return;
+  const head = document.createElement('div');
+  head.className = 'tl-head';
+  head.textContent = ja ? 'この場所の移り変わり' : 'HOW THIS PLACE CHANGED';
+  box.appendChild(head);
+
+  const active = timelineAt(s, era.id, ERA_IDS, ERAS);
+  for (const t of s.timeline) {
+    const e = ERAS.find((x) => x.id === t.era);
+    const row = document.createElement('div');
+    row.className = 'tl-row' + (t === active ? ' now' : '');
+    const eraEl = document.createElement('span');
+    eraEl.className = 'tl-era';
+    eraEl.textContent = e ? (ja ? e.ja : e.en) : t.era;
+    const nameEl = document.createElement('span');
+    nameEl.className = 'tl-name';
+    nameEl.textContent = ja ? (t.label_ja || '') : (t.label_en || '');
+    const noteEl = document.createElement('span');
+    noteEl.className = 'tl-note';
+    noteEl.textContent = ja ? (t.note_ja || '') : (t.note_en || '');
+    row.append(eraEl, nameEl, noteEl);
+    const srcs = Array.isArray(t.sources) ? t.sources : [];
+    if (srcs.length) {
+      const sw = document.createElement('span');
+      sw.className = 'tl-src';
+      sw.appendChild(span(ja ? '出典: ' : 'Source: '));
+      srcs.forEach((src, i) => {
+        if (i) sw.appendChild(span(' / '));
+        // カードの出典欄と同じ約束: link_policy: forbidden は <a> にせず、
+        // 名称だけをテキストで残す（リンクを外す ≠ 出典を消す・REG-007 第11条第1項）。
+        // 段の出典は地点級の写しなので、片方だけ直すと必ず食い違う。
+        // build/check-linkpolicy.mjs は**両方を実描画して**見ている。
+        const forbidden = src.link_policy === 'forbidden';
+        const srcEl = document.createElement(forbidden ? 'b' : 'a');
+        srcEl.textContent = src.name || src.authority || src.url;
+        if (forbidden) {
+          srcEl.className = 'tl-srcname';
+        } else {
+          srcEl.href = src.url;
+          srcEl.target = '_blank';
+          srcEl.rel = 'noopener noreferrer';
+        }
+        sw.appendChild(srcEl);
+      });
+      row.appendChild(sw);
+    }
+    box.appendChild(row);
+  }
+}
+
+/**
+ * AI開示の言語切替（REG-007 第4条・第5条第2項／RINGI-0007 T-8・イシ条件1）。
+ *
+ * **逐語文はここに無い。静的HTMLの #ai-banner-text / #ai-banner-text-en にある。**
+ * ここが文字列を持っていた頃は、英語の逐語文がJSの中にしか存在せず、
+ * 「既定が ja だからJSが落ちても開示は残る」という理屈で成り立っていた。
+ * `?lang=en` を入れた瞬間にその理屈は崩れる——英語を期待して来た訪問者に対し、
+ * JSが落ちれば日本語の開示しか残らない。だから**両方を静的に置き、JSは表示だけを切り替える**。
+ *
+ * ここは「文案」ではなく条文の履行である。第5条第2項は記事以外の面に
+ * 「この画面はAIが運営・応対しています」を標準文言として定め、言い換える場合も
+ * 「AIである」と「人間ではない」の2点を必ず残せと書いている。第4条第5項は
+ * **監修していないものを監修したと書くことを禁じている**ので、
+ * 「人間による監修は入っていません」を明示的に置く。
+ * build/htmlrun.mjs の AI_DISCLOSURE_LINES が日英ともこれらを逐語で押さえている。
+ *
+ * **畳む・隠す・縮める分岐は持たない**（第4条第3項）。持つのは「いまどちらの言語を出すか」だけで、
+ * どちらを選んでも**必ず一方は全文が出ている**。
+ */
+function renderAiDisclosure() {
+  const ja = state.lang === 'ja';
+  const show = (id, on) => { $(id).style.display = on ? '' : 'none'; };
+  show('ai-banner-mark', ja);
+  show('ai-banner-text', ja);
+  show('ai-banner-mark-en', !ja);
+  show('ai-banner-text-en', !ja);
+}
+
+/**
+ * T-7 の開示（RINGI-0007 シノ条件15）。**逐語文はここに無い**——静的HTMLの
+ * `#hosting-note-ja` / `#hosting-note-en` にある。ここが持つのは表示の切替だけで、
+ * JSが落ちれば日英が**両方**残る（開示が消えるより、2言語出るほうがはるかに良い）。
+ * `renderAiDisclosure()` と同じ構えで、畳む・縮める分岐は持たない。
+ */
+function renderHostingNote() {
+  const ja = state.lang === 'ja';
+  const show = (id, on) => { $(id).style.display = on ? '' : 'none'; };
+  show('hosting-note-ja', ja);
+  show('hosting-note-en', !ja);
+}
+
+/**
+ * 出典表記（フッタ）。**ライセンス上の義務**なので、世界観の改修でも消さない
+ * （sources-shino §4-3 の固定文言）。URL はデータ側から入れる —— HTMLに外部URLを
+ * 直書きすると check-html が「実行時の外部依存」として弾くため。
+ * 標高が読めなかった時は**GSIの出典を出さない**（使っていないものを出典に書かない）。
+ */
+function renderAttrib() {
+  const ja = state.lang === 'ja';
+  const line = $('attrib-terrain');
+  line.textContent = '';
+  if (DEM) {
+    line.appendChild(span(ja ? '地形データ: ' : 'Terrain: '));
+    const b = document.createElement('b');
+    b.textContent = ja ? '地理院タイル（標高タイル（基盤地図情報数値標高モデル））'
+                       : 'GSI elevation tiles (Fundamental Geospatial Data DEM)';
+    line.appendChild(b);
+    line.appendChild(span(ja ? 'を加工して作成　／　出典: ' : ', processed by DIGIT — source: '));
+    const a = document.createElement('a');
+    a.href = DEM.source_url || 'https://maps.gsi.go.jp/development/ichiran.html';
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = ja ? '国土地理院ウェブサイト' : 'Geospatial Information Authority of Japan';
+    line.appendChild(a);
+  } else {
+    line.textContent = ja
+      ? '標高は合成データです（実測ではありません）'
+      : 'Elevation here is synthetic (not measured).';
+  }
+  const rest = $('attrib-rest');
+  rest.textContent = '';
+  const put = (label, name, url, tail) => {
+    rest.appendChild(span(label));
+    if (url) {
+      const a = document.createElement('a');
+      a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      a.textContent = name;
+      rest.appendChild(a);
+    } else {
+      const b = document.createElement('b');
+      b.textContent = name;
+      rest.appendChild(b);
+    }
+    if (tail) rest.appendChild(span(tail));
+  };
+  const at = (sitesDoc.meta && sitesDoc.meta.attribution) || {};
+  put(ja ? '海岸線: ' : 'Coastline: ', 'Natural Earth', null,
+      ja ? '（パブリックドメイン）　／　' : ' (public domain) · ');
+  put(ja ? '史跡情報: ' : 'Heritage data: ',
+      ja ? '文化庁 国指定文化財等データベース' : 'Agency for Cultural Affairs heritage database',
+      at.heritage_url, '　／　');
+  // three.js の表記から**同梱した MIT 本文へ相対リンクで到達できる**ようにする（RINGI-0007 T-2）。
+  // 「MIT だと書いてある」ことと「MIT の本文を一緒に配っている」ことは別で、
+  // MIT 第2段落が求めているのは後者である。外部URLではないので check-html の外部依存検査には触れない。
+  // 拡張子 .txt はブラウザに**保存ではなく表示**させるため（RINGI-0007 §8-B の所管裁定）。
+  put(ja ? '3D描画: ' : 'Rendering: ', ja ? 'three.js r169（MIT）' : 'three.js r169 (MIT)',
+      './vendor/LICENSE.txt', '　／　');
+  // ライセンスの3層を**名前とリンクで**出す（RINGI-0007 T-3・シノ条件3）。
+  // 「© 株式会社DIGIT」だけでは権利者は分かってもライセンスが分からず、
+  // 「使ってもらうために公開する」という本件の趣旨と表示が食い違う。
+  put(ja ? '解説文: ' : 'Texts: ', ja ? '© 株式会社DIGIT（CC BY-ND 4.0）' : '© DIGIT Inc. (CC BY-ND 4.0)',
+      './LICENSE-DATA.md', '　／　');
+  put(ja ? 'コード: ' : 'Code: ', 'Apache-2.0', './LICENSE', '');
+}
+
+/**
+ * いまの `state.lang` を画面ぜんぶへ反映する。
+ *
+ * **起動時と切替時で同じ経路を通す**のが要点である。以前は言語の反映が `toggleLang()` の
+ * 中にしか無く、起動時は「既定が ja だから何もしなくてよい」で成立していた。
+ * `?lang=en` を入れた瞬間にそれは崩れる——英語で起動したのにボタンは「EN」、
+ * 見出しは日本語、という画面になる。だから反映を関数に出して、boot からも呼ぶ。
+ */
+function applyLang() {
+  const ja = state.lang === 'ja';
+  applyLangToDocument();
+  const btn = $('langbtn');
+  btn.textContent = ja ? 'EN' : '日本語';
+  btn.setAttribute('aria-pressed', String(!ja));
+  $('brand-title').textContent = ja ? '日本史ジオラマ' : 'Japan History Diorama';
+  $('brand-sub').textContent = ja ? 'JAPAN HISTORY DIORAMA' : '日本史ジオラマ';
+  /* タブに出る名前も切り替える。内部バージョン表記はどちらの面にも出さない（art-direction.md §1）。 */
+  document.title = ja ? '日本史ジオラマ — Japan History Diorama'
+                      : 'Japan History Diorama — 日本史ジオラマ';
+  $('scene').setAttribute('aria-label', ja ? '日本列島の立体ジオラマ' : '3D diorama of the Japanese archipelago');
+  updateBackBtn();
+  $('inset-cap').textContent = ja ? '沖縄本島・首里城' : 'OKINAWA — SHURI CASTLE';
+  $('card-close').setAttribute('aria-label', ja ? '閉じる' : 'Close');
+  // H-2 の1行。**退避した2つを名指しする**（「表示を戻す」だけでは何が消えたか分からない）。
+  $('era-restore').textContent = ja ? '× カードを閉じて、時代の要約と地点の近道を戻す'
+                                    : '× Close card to restore era summary and shortcuts';
+  renderAiDisclosure();
+  renderHostingNote();
+  renderAttrib();
+  updatePlayLabel();
+}
+
+function toggleLang() {
+  state.lang = state.lang === 'ja' ? 'en' : 'ja';
+  applyLang();
+  syncLangUrl();          // URLを書き戻す。**再読み込みはしない**（シーンを作り直さない）
+  setEra(state.eraIndex, true);
+}
+
+function updatePlayLabel() {
+  const ja = state.lang === 'ja';
+  $('playbtn').textContent = state.playing
+    ? (ja ? '■ 停止' : '■ Stop')
+    : (ja ? '▶ 再生' : '▶ Play');
+  $('playbtn').setAttribute('aria-pressed', String(state.playing));
+}
+function startPlay() { state.playing = true; state.playT = 0; updatePlayLabel(); }
+function stopPlay() { if (!state.playing) return; state.playing = false; updatePlayLabel(); }
+
+/* --------------------------------------------------------------- カメラ */
+
+/**
+ * 見下ろす向き。0.46rad ≒ 南南東から、仰角 約34度。列島の長軸（九州→北海道）が
+ * 画面の対角に流れ、机の上の模型を斜めから覗き込んだ形になる。
+ * 縦長の画面では長軸を立てたほうが大きく写るので、画面比で向きを変える。
+ */
+const VIEW_LAND = { azim: 0.25, polar: 0.92, fov: 38 };   // 横長（PC）
+const VIEW_PORT = { azim: -0.70, polar: 0.88, fov: 44 };  // 縦長（スマホ）
+
+function viewParams(aspect) {
+  const t = clamp((aspect - 0.72) / (1.28 - 0.72), 0, 1);
+  return {
+    azim:  lerp(VIEW_PORT.azim, VIEW_LAND.azim, t),
+    polar: lerp(VIEW_PORT.polar, VIEW_LAND.polar, t),
+    fov:   lerp(VIEW_PORT.fov, VIEW_LAND.fov, t),
+  };
+}
+
+const VIEW = {
+  azim: VIEW_LAND.azim,
+  polar: VIEW_LAND.polar,
+  target: new THREE.Vector3(),
+  dist: 20,
+  fitted: 'main',
+  get homeDirX() { return Math.sin(this.polar) * Math.sin(this.azim); },
+  get homeDirY() { return Math.cos(this.polar); },
+  get homeDirZ() { return Math.sin(this.polar) * Math.cos(this.azim); },
+};
+
+/**
+ * 収まり計算に使う点群。海岸線の頂点そのものと、その真上の「地形の天辺」。
+ * v0 は外接箱の8隅で解いていたので、箱の角（＝陸のない海）まで律儀に画面へ入れてしまい、
+ * 列島が画面の3割しか占めなかった。実際の陸の点で解けばその無駄が消える。
+ */
+const FIT = { main: null, inset: null };
+
+function buildFitPoints() {
+  const main = [], inset = [];
+  for (const poly of coast.polygons) {
+    const isMain = poly.rings[0].some(([, lat]) => lat >= INSET_LAT_MAX);
+    // インセットは沖縄本島。南西諸島ぜんぶを入れると、1000kmの海に点が散るだけで
+    // 何も読めない（実寸のとおりではあるが、絵として意味がない）。
+    const inInset = poly.id === 'okinawa';
+    for (const [lon, lat] of poly.rings[0]) {
+      const p = proj.project(lon, lat);
+      const top = LAND_H + heightAt(lon, lat) * 0.85;
+      if (isMain) main.push(p.x, 0, p.z, p.x, top, p.z);
+      if (inInset) inset.push(p.x, 0, p.z, p.x, top, p.z);
+    }
+  }
+  FIT.main = new Float32Array(main);
+  FIT.inset = new Float32Array(inset);
+}
+
+/**
+ * 最初の1画面（台＝`#stage`）の高さ。**`window.innerHeight` ではない**——
+ * 折り返しの見切れ（`--peek`）のぶんだけ低い。`offsetHeight` はレイアウトの高さなので
+ * スクロール位置に左右されず、読者がどこまで送っていても同じ値を返す。
+ * ここを画面の高さで代用すると、絵も沖縄のインセットも見切れのぶん下へずれる。
+ */
+function stageHeight() {
+  const el = document.getElementById('stage');
+  const h = el ? el.offsetHeight : 0;
+  return h > 0 ? h : (window.innerHeight || 720);
+}
+
+/**
+ * 画面のうち「絵を置いてよい帯」。上はヘッダ、下は時代バーに食われているので、
+ * その内側に列島を収める。NDC（中央0・上が+1）で返す。
+ */
+function safeBand() {
+  const h = window.innerHeight || 720;
+  const topEl = document.getElementById('topbar');
+  const barEl = document.getElementById('erabar');
+  const top = (topEl && topEl.offsetHeight ? topEl.offsetHeight : 72) + 14;
+  // 下の器は**台の下端**にある（画面の下端ではない。見切れのぶん上）。
+  // ここを `h` から引くと、絵が見切れの帯のぶんだけ下へずれて時代バーに潜る。
+  const bot = stageHeight() - (barEl && barEl.offsetHeight ? barEl.offsetHeight : 200) - 14;
+  const mid = (top + bot) / 2;
+  return {
+    fx: 0.94,
+    fy: clamp(((bot - top) / 2) / (h / 2), 0.28, 0.98),
+    cx: 0,
+    cy: clamp(-((mid - h / 2) / (h / 2)), -0.4, 0.4),
+  };
+}
+
+/**
+ * 点群が帯にぴったり収まる距離と注視点を解く。
+ * 「距離を二分探索 → はみ出し方を見て注視点をずらす」を数回まわすだけ。
+ * 透視投影なので手前の点ほど大きく効き、解析的には解けない（＝反復が素直）。
+ */
+function solveFit(pts, aspect, fovDeg, azim, polar, band) {
+  const dir = new THREE.Vector3(Math.sin(polar) * Math.sin(azim), Math.cos(polar), Math.sin(polar) * Math.cos(azim));
+  const right = new THREE.Vector3(Math.cos(azim), 0, -Math.sin(azim));
+  const up = new THREE.Vector3(-Math.sin(azim) * Math.cos(polar), Math.sin(polar), -Math.cos(azim) * Math.cos(polar));
+  const vF = (fovDeg * Math.PI) / 180;
+  const tV = Math.tan(vF / 2), tH = tV * aspect;
+
+  const t = new THREE.Vector3();
+  let n = 0;
+  for (let i = 0; i < pts.length; i += 3) {
+    if (pts[i + 1] === 0) { t.x += pts[i]; t.z += pts[i + 2]; n++; }
+  }
+  if (n) { t.x /= n; t.z /= n; }
+
+  const box = { x0: 0, x1: 0, y0: 0, y1: 0, near: 0 };
+  /** カメラを t + dir*D に置いた時の、点群の画面(NDC)での外接箱。 */
+  const project = (D) => {
+    const cx = t.x + dir.x * D, cy = t.y + dir.y * D, cz = t.z + dir.z * D;
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, near = Infinity;
+    for (let i = 0; i < pts.length; i += 3) {
+      const vx = pts[i] - cx, vy = pts[i + 1] - cy, vz = pts[i + 2] - cz;
+      const d = -(vx * dir.x + vy * dir.y + vz * dir.z);      // 視線方向の深さ
+      if (d < near) near = d;
+      if (d <= 0.05) continue;
+      const sx = (vx * right.x + vy * right.y + vz * right.z) / (d * tH);
+      const sy = (vx * up.x + vy * up.y + vz * up.z) / (d * tV);
+      if (sx < x0) x0 = sx; if (sx > x1) x1 = sx;
+      if (sy < y0) y0 = sy; if (sy > y1) y1 = sy;
+    }
+    box.x0 = x0; box.x1 = x1; box.y0 = y0; box.y1 = y1; box.near = near;
+    return box;
+  };
+
+  let D = 24;
+  for (let pass = 0; pass < 8; pass++) {
+    let lo = 3, hi = 220;
+    for (let k = 0; k < 42; k++) {
+      const mid = (lo + hi) / 2;
+      const b = project(mid);
+      const ok = b.near > 0.6
+        && b.x0 >= band.cx - band.fx && b.x1 <= band.cx + band.fx
+        && b.y0 >= band.cy - band.fy && b.y1 <= band.cy + band.fy;
+      if (ok) hi = mid; else lo = mid;
+    }
+    D = hi;
+    const b = project(D);
+    const dx = (b.x0 + b.x1) / 2 - band.cx;
+    const dy = (b.y0 + b.y1) / 2 - band.cy;
+    if (Math.abs(dx) < 2e-4 && Math.abs(dy) < 2e-4) break;
+    const wx = dx * D * tH, wy = dy * D * tV;
+    t.addScaledVector(right, wx).addScaledVector(up, wy);
+  }
+  const b = project(D);
+  return { dist: D, target: t, fillW: (b.x1 - b.x0) / 2, fillH: (b.y1 - b.y0) / 2 };
+}
+
+/**
+ * 既定の枠。本土（北緯30度以北）だけを対象にする。南西諸島まで一枚に入れると
+ * 列島が小さくなりすぎるので、こちらは左下のインセットに別枠で出す。
+ */
+function computeHome() {
+  const aspect = camera.aspect;
+  const vp = viewParams(aspect);
+  const fit = solveFit(FIT.main, aspect, vp.fov, vp.azim, vp.polar, safeBand());
+  return { ...vp, ...fit, fitted: 'main' };
+}
+
+function applyHome(instant) {
+  const h = computeHome();
+  VIEW.azim = h.azim;
+  VIEW.polar = h.polar;
+  VIEW.target.copy(h.target);
+  VIEW.dist = clamp(h.dist, controls.minDistance, controls.maxDistance);
+  VIEW.fitted = h.fitted;
+  VIEW.fill = h.fillW;
+  if (!instant) { focusOn(null); return; }
+  controls.target.copy(h.target);
+  camera.position.set(
+    h.target.x + VIEW.homeDirX * VIEW.dist,
+    h.target.y + VIEW.homeDirY * VIEW.dist,
+    h.target.z + VIEW.homeDirZ * VIEW.dist,
+  );
+  controls.update();
+}
+
+/* ------------------------------------------------------------ インセット */
+
+/**
+ * 沖縄は本土から遠すぎて、同じ枠に入れると列島全体が小さくなる。地図の作法どおり
+ * 別枠（インセット）に切り出す。同じシーンを2度目に描くだけなので、モデルも
+ * 光も時代の同期も全部そのまま — 「別の絵」ではなく「同じジオラマの別の窓」。
+ */
+let insetCam = null, insetRect = null, insetEl = null;
+
+function buildInset() {
+  insetCam = new THREE.PerspectiveCamera(34, 1, 0.5, 900);
+  insetEl = document.getElementById('inset');
+}
+
+function layoutInset() {
+  if (!insetEl) return;
+  const w = window.innerWidth || 1280, h = window.innerHeight || 720;
+  const barEl = document.getElementById('erabar');
+  const barH = (barEl && barEl.offsetHeight ? barEl.offsetHeight : 200);
+  const tw = Math.round(clamp(Math.min(w, h) * 0.235, 116, 190));
+  const th = Math.round(tw * 0.78);
+  // 列島は左下→右上に流れる。横長では左下が空くが、縦長では左下に九州が来るので
+  // インセットは右へ寄せる（＝列島を隠さない側に置く）。
+  const x = (w / h < 0.9) ? (w - tw - 14) : 16;
+  // 下端の基準は**台**（`stageHeight()`）。画面の高さから引くと、インセットが
+  // 見切れのぶん下がって時代バーの板に 16px 潜る（G-215 の実測）。
+  const y = stageHeight() - barH - 14 - th - 15;     // 15 = 見出し帯のぶん
+  // 窮屈な画面ではインセットを出さない（本体の絵を潰してまで出すものではない）。
+  // **読者が折り返しの下へ送り始めたら消す**のも同じ理由である——枠は fixed で画面に
+  // 貼り付いたまま、時代バーだけが上へ流れるので、送っている途中で枠の下半分が板に
+  // 食われて「見出し帯が切れた小窓」になる（実測 768x1024 で 90px 食われた）。
+  // 中身は WebGL の scissor が描くので、枠だけ隠すと枠なしの拡大図が浮く。両方まとめて畳む。
+  if (w < 380 || h < 460 || y < 96 || insetFolded(window.scrollY)) {
+    insetRect = null;
+    insetEl.style.display = 'none';
+    return;
+  }
+  insetRect = { x, y, w: tw, h: th };
+  insetEl.style.display = 'block';
+  insetEl.style.width = `${tw}px`;
+  insetEl.style.height = `${th + 15}px`;
+  insetEl.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+
+  insetCam.aspect = tw / th;
+  insetCam.updateProjectionMatrix();
+  // インセットは収まり計算に任せない。この縮尺では沖縄本島（約0.8ワールド単位）より
+  // 首里城のほうが背が高いので、島に収まりを合わせると城に寄りきってしまう。
+  // 「島の形が読めて、その上に城が乗っている」絵を直に置く。見下ろしを本体より
+  // 立てているのは、斜めだと城が島を隠すため（地図のインセットは真上寄りが定石でもある）。
+  const polar = 0.52;
+  const dist = 5.4;
+  const t = new THREE.Vector3();
+  let n = 0;
+  for (let i = 0; i < FIT.inset.length; i += 3) {
+    if (FIT.inset[i + 1] === 0) { t.x += FIT.inset[i]; t.z += FIT.inset[i + 2]; n++; }
+  }
+  if (n) { t.x /= n; t.z /= n; }
+  const dir = new THREE.Vector3(
+    Math.sin(polar) * Math.sin(VIEW.azim), Math.cos(polar), Math.sin(polar) * Math.cos(VIEW.azim));
+  insetCam.position.copy(t).addScaledVector(dir, dist);
+  insetCam.lookAt(t);
+  insetCam.updateMatrixWorld();
+}
+
+function renderInset() {
+  // **枠を畳む条件をシザー描画にも直に掛ける**（G-224・ハヤ I-1 の後半）。`insetRect` を
+  // null にするのは `layoutInset` で、それを呼ぶ scroll 監視は `passive` である
+  // ——送りと描画のあいだに1フレーム挟まると、枠の無い拡大図がその1枚に写る。
+  // 「畳んだつもりで1枚だけ描いた」は再現しにくく、証跡にだけ残る種類の欠陥なので、
+  // 描く側でも同じ述語を見る（条件を2箇所に書くのではなく、述語を2箇所で呼ぶ）。
+  if (insetFolded(window.scrollY)) return;
+  if (!insetRect || !insetCam) return;
+  const el = renderer.domElement;
+  const w = el.clientWidth, h = el.clientHeight;
+  const y = h - insetRect.y - insetRect.h;              // WebGL の原点は左下
+  renderer.setScissorTest(true);
+  renderer.setViewport(insetRect.x, y, insetRect.w, insetRect.h);
+  renderer.setScissor(insetRect.x, y, insetRect.w, insetRect.h);
+  renderer.render(scene, insetCam);
+  renderer.setScissorTest(false);
+  renderer.setViewport(0, 0, w, h);
+}
+
+/**
+ * カメラを1地点へ寄せる（`pos` が null なら全景へ戻す）。
+ *
+ * **寄る先を「今の距離の何倍」ではなく絶対距離にしてある**のが v0.2 との違い。
+ * 倍率だと1回目は寄るが2回目で寄りすぎ、3回目以降は下限に張り付いて**何も起きない**。
+ * 体験の核が「毎クリック必ず発火する」ことなので（worldview-haya §2）、
+ * どの地点から押しても同じ絵の大きさで着地する絶対値にした。
+ *
+ * `prefers-reduced-motion` の環境では**動かさずに着地だけする**（dur=0）。
+ * 演出を消すのであって、機能（寄って見る）は消さない。
+ */
+function focusOn(pos) {
+  const from = controls.target.clone();
+  const dist = camera.position.distanceTo(controls.target);
+  const isZoom = !!pos;
+  state.focus = {
+    t: 0,
+    dur: prefersReduced ? 0 : (isZoom ? ZOOM_MS : 0.85),
+    fromTarget: from,
+    toTarget: isZoom ? new THREE.Vector3(pos.x, 0.25, pos.z) : VIEW.target.clone(),
+    fromDist: dist,
+    toDist: isZoom ? clamp(ZOOM_DIST, controls.minDistance, controls.maxDistance) : VIEW.dist,
+  };
+}
+
+/** その地点へ寄る。**クリックのたびに必ず呼ぶ**（発火を条件で間引かない）。 */
+function zoomTo(id) {
+  const s = SITES.find((x) => x.id === id);
+  if (!s) return;
+  state.zoom = id;
+  document.body.dataset.zoom = '1';
+  markersDirty = true;                 // 主役以外を退かせる
+  focusOn(s.pos);
+  updateBackBtn();
+}
+
+/** 全景へ戻る（戻るボタン / Esc / 何も無い所のクリック）。 */
+function exitZoom() {
+  const wasZoomed = state.zoom !== null;
+  state.zoom = null;
+  state.selected = null;
+  markersDirty = true;
+  delete document.body.dataset.zoom;
+  renderCard();
+  renderChips(SITES.filter((s) => siteInEra(s, ERAS[state.eraIndex].id)));
+  updateBackBtn();
+  if (wasZoomed) applyHome(false);
+  state.lastInput = performance.now();
+}
+
+/** 寄っている間だけ、同じボタンを「戻る」に化けさせる（出口を常に見せる）。 */
+function updateBackBtn() {
+  const b = $('resetbtn');
+  const ja = state.lang === 'ja';
+  const zoomed = state.zoom !== null;
+  b.textContent = zoomed ? (ja ? '◀ 全景へ戻る' : '◀ Back to map') : (ja ? '全体表示' : 'Overview');
+  b.classList.toggle('back', zoomed);
+}
+
+function updateCamera(dt) {
+  if (state.focus) {
+    const f = state.focus;
+    f.t += dt;
+    // dur=0（prefers-reduced-motion）は 0/0 で NaN になるので、そこだけ先に畳む
+    const k = f.dur > 0 ? easeInOutCubic(clamp(f.t / f.dur, 0, 1)) : 1;
+    controls.target.lerpVectors(f.fromTarget, f.toTarget, k);
+    const dir = camera.position.clone().sub(f.fromTarget).normalize();
+    const d = f.fromDist + (f.toDist - f.fromDist) * k;
+    camera.position.copy(controls.target).add(dir.multiplyScalar(d));
+    if (f.t >= f.dur) state.focus = null;
+  } else if (!prefersReduced && performance.now() - state.lastInput > 4200) {
+    // ゆっくりした自動旋回。ユーザーが触ると止まる。
+    tmpV.copy(camera.position).sub(controls.target);
+    tmpS.setFromVector3(tmpV);
+    tmpS.theta += 0.030 * dt;
+    tmpV.setFromSpherical(tmpS);
+    camera.position.copy(controls.target).add(tmpV);
+  }
+  // パンで地図を見失わないよう、注視点を既定の枠のまわりに閉じ込める
+  controls.target.x = clamp(controls.target.x, VIEW.target.x - 11, VIEW.target.x + 11);
+  controls.target.z = clamp(controls.target.z, VIEW.target.z - 12, VIEW.target.z + 12);
+  controls.target.y = clamp(controls.target.y, -1, 3);
+  controls.update();
+}
+
+/* ------------------------------------------------------------------ loop */
+
+let markersDirty = true;
+
+function tick() {
+  const dt = Math.min(clock.getDelta(), 0.1);
+  const t = clock.elapsedTime;
+
+  // 時代の自動送り
+  if (state.playing) {
+    state.playT += dt * 1000;
+    if (state.playT >= PLAY_MS) {
+      state.playT = 0;
+      setEra((state.eraIndex + 1) % ERAS.length, true);
+    }
+  }
+
+  // 城の出入り
+  let moving = false;
+  for (const s of SITES) {
+    if (Math.abs(s.alive - s.aliveTarget) > 0.0015) {
+      s.alive = damp(s.alive, s.aliveTarget, 5.5, dt);
+      moving = true;
+    } else if (s.alive !== s.aliveTarget) {
+      s.alive = s.aliveTarget;
+      moving = true;
+    }
+  }
+  if (moving || markersDirty) { refreshMarkerMatrices(); markersDirty = false; }
+
+  // 海のきらめき
+  if (!prefersReduced) {
+    for (const w of waterLayers) {
+      w.tex.offset.x = (w.tex.offset.x + w.sx * dt) % 1;
+      w.tex.offset.y = (w.tex.offset.y + w.sz * dt) % 1;
+    }
+  }
+
+  // 選択リング
+  const sel = SITES.find((s) => s.id === state.selected);
+  if (sel) {
+    highlightRing.visible = true;
+    highlightRing.position.set(sel.pos.x, MARKER_Y + 0.03, sel.pos.z);
+    const pulse = 1 + Math.sin(t * 3.4) * 0.07;
+    highlightRing.scale.set(pulse, 1, pulse);
+    highlightRing.material.opacity = 0.55 + Math.sin(t * 3.4) * 0.2;
+  } else {
+    highlightRing.visible = false;
+  }
+
+  updateCamera(dt);
+
+  // 霞は「今のカメラ距離」を基準に掛ける。寄っても引いても掛かり方が同じになり、
+  // 海の板の端（遥か遠く）は必ず霞に溶けて見えない。
+  const camDist = camera.position.distanceTo(controls.target);
+  scene.fog.near = camDist * 0.80;
+  scene.fog.far = camDist * 3.4;
+
+  const w = renderer.domElement.clientWidth, h = renderer.domElement.clientHeight;
+  updateLabels(w, h);
+
+  renderer.render(scene, camera);
+  renderInset();
+}
+
+/* ---------------------------------------------------------------- resize */
+
+let lastFov = 0;
+function onResize(reframe = false) {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.fov = viewParams(w / h).fov;
+  camera.updateProjectionMatrix();
+  // 画角が変わった＝縦横が入れ替わった時は枠を取り直す
+  // （それ以外はユーザーのズームを尊重する）
+  if (reframe || Math.abs(camera.fov - lastFov) > 0.01) {
+    lastFov = camera.fov;
+    if (controls) applyHome(true);
+  }
+  layoutInset();
+  syncChrome();
+}
+
+/**
+ * 画面の上下の「器」の実寸を CSS 変数へ流す。カードはこの2つのあいだにだけ置かれる（G-190）。
+ *
+ *   --sheet-b   下の時代バーが要求する高さ（モバイルではカードを持ち上げる量）
+ *   --tools-b   上の道具（全体表示 / EN）の下端
+ *   --topbar-b  上の段（題箋＋道具）**まるごと**の下端
+ *
+ * `--tools-b` と `--topbar-b` を分けてあるのは、カードがぶつかる相手が幅で変わるから。
+ * 広い画面のカードは右端 330px なので、左にある題箋とは決してぶつからず、当たるのは
+ * 右上の道具だけ（`--tools-b`）。狭い画面（≤860px）のカードは全幅なので、上の段の
+ * **背の高い方**にぶつかる——そこで `--tools-b` を使っていたのが G-195 の覆いだった
+ * （題箋 189px / 道具 156px。33px の差がそのまま覆いになる）。
+ *
+ * どちらも定数で書いてあった。**定数はどちらも実測と食い違っていた**——
+ * 時代バーは板の上端 418px に対しカード下端 546px、道具は下端 100.6px に対しカード上端 76px。
+ * どちらの高さも中身で変わる（時代の要約文の行数・AI開示バナーの折り返し）ので、
+ * 定数では原理的に追随できない。
+ */
+function syncChrome() {
+  const root = document.documentElement.style;
+  const bar = document.getElementById('erabar');
+  if (bar) root.setProperty('--sheet-b', `${Math.ceil(bar.offsetHeight) + 8}px`);
+  const tools = document.getElementById('tools');
+  if (tools) root.setProperty('--tools-b', `${Math.ceil(tools.getBoundingClientRect().bottom)}px`);
+  const row = document.getElementById('topbar-row');
+  if (row) root.setProperty('--topbar-b', `${Math.ceil(row.getBoundingClientRect().bottom)}px`);
+}
+
+/** 器の高さの変化を `syncChrome` に直結する（対応しない環境では onResize だけが効く）。 */
+function watchChrome() {
+  if (typeof ResizeObserver !== 'function') return;
+  const ro = new ResizeObserver(syncChrome);
+  for (const id of ['erabar', 'topbar']) {
+    const el = document.getElementById(id);
+    if (el) ro.observe(el);
+  }
+}
+
+/* ------------------------------------------------------------------ go */
+
+if (!window.WebGLRenderingContext) {
+  fail(new Error('このブラウザは WebGL に対応していないようです。 / WebGL is not available.'));
+} else {
+  main().catch(fail);
+}
+</script>
+</body>
+</html>

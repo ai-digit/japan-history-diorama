@@ -1,0 +1,53 @@
+日本史ジオラマ / Japan History Diorama
+Copyright 2026 株式会社DIGIT (DIGIT Inc.)
+
+This product includes software developed by 株式会社DIGIT (DIGIT Inc.),
+licensed under the Apache License, Version 2.0 (see LICENSE).
+
+--------------------------------------------------------------------------------
+本 NOTICE の位置づけ / What this file is
+--------------------------------------------------------------------------------
+Apache License 2.0 第4条(d)が求める帰属告知である。再頒布する場合は、この
+NOTICE の内容を頒布物に含めること。
+
+This is the attribution notice required by Section 4(d) of the Apache License 2.0.
+Redistributions must include the contents of this NOTICE file.
+
+--------------------------------------------------------------------------------
+本ソフトウェアが含む第三者の著作物 / Third-party components
+--------------------------------------------------------------------------------
+Apache-2.0 は**当社が書いたコードにだけ**掛かる（この配布では `index.html` と `lib/`）。
+以下は当社の著作物ではなく、Apache-2.0 の対象外である。それぞれの条件に従うこと。
+**以下のパスはすべて、この配布物の直下からの相対パスである。**
+
+  * three.js r169 — MIT License
+    vendor/three/ に本文と SHA-256 つきで同梱（vendor/LICENSE.txt）。
+
+  * 海岸線データ（data/japan-coast.json）
+    Natural Earth 1:50m Admin 0 – Countries (v5.1.2) の派生物。
+    Natural Earth はパブリックドメイン（Natural Earth terms of use）。
+
+  * 標高データ（data/dem-japan.png / data/dem-japan.json）
+    地理院タイル（標高タイル（基盤地図情報数値標高モデル））を加工して作成。
+    出典: 国土地理院ウェブサイト https://maps.gsi.go.jp/development/ichiran.html
+    規約: 国土地理院コンテンツ利用規約
+          https://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html
+    帰属は PNG の tEXt/iTXt チャンクにも焼き込んである（ファイル単体で完結する）。
+
+  * 史跡の指定情報（data/sites.jsonl の sources 配列）
+    文化庁 国指定文化財等データベース等の公表情報を出典として参照している。
+    参照であって転載ではない。各出典の権利は各出典者に帰属する。
+
+  * 解説文・構造化データ
+    Apache-2.0 の対象外。LICENSE-DATA.md を参照（解説文 = CC BY-ND 4.0 /
+    構造化データ = CC BY 4.0）。
+
+--------------------------------------------------------------------------------
+AI開示 / AI disclosure
+--------------------------------------------------------------------------------
+本ソフトウェアと解説文は、株式会社DIGITのAIエージェントが作成した。人間ではない。
+人間による監修は入っていない。支出・方針の承認は人間のオーナーが行う。
+
+This software and its texts were produced by the AI agents of DIGIT Inc.
+Not by a human. No human editorial review was applied. Spending and policy
+decisions are approved by the human owner.

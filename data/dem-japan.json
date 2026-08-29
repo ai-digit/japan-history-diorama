@@ -1,0 +1,53 @@
+{
+  "what": "国土地理院 標高タイルをビルド時に焼き込んだ高さ格子（実行時の外部取得はゼロ）",
+  "attribution": "地理院タイル（標高タイル（基盤地図情報数値標高モデル））を加工して作成",
+  "source": "国土地理院ウェブサイト",
+  "source_url": "https://maps.gsi.go.jp/development/ichiran.html",
+  "terms": "国土地理院コンテンツ利用規約",
+  "terms_url": "https://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html",
+  "attribution_in_png": "tEXt/iTXt（Attribution・Source・Terms-URL・Acquisition-Date・Disclaimer）",
+  "tiles_acquired": "2026-08-28",
+  "tile_url": "https://cyberjapandata.gsi.go.jp/xyz/dem/7/{x}/{y}.txt",
+  "zoom": 7,
+  "tiles": 99,
+  "generated_by": "tools/bake-dem.mjs",
+  "generated": "2026-08-28",
+  "width": 1024,
+  "height": 1024,
+  "bbox": [
+    123.6798,
+    24.2661,
+    145.833,
+    45.5095
+  ],
+  "encoding": "PNG 8bit グレースケール。画素値 v → 高さ u = v/255（0..1）。u からメートルへは stops を逆に引く（区分線形・概算）",
+  "stops": [
+    [
+      0,
+      0.02
+    ],
+    [
+      100,
+      0.1
+    ],
+    [
+      500,
+      0.28
+    ],
+    [
+      1500,
+      0.55
+    ],
+    [
+      2500,
+      0.76
+    ],
+    [
+      3776,
+      1
+    ]
+  ],
+  "max_meters_in_grid": 3394.8,
+  "smoothing": "3x3 二項フィルタ1パス（低ポリの見た目を保つため。2回かけると尾根が丸まり雪が消える＝実測）",
+  "processing": "z=7 の標高タイル 99枚を 1024x1024 格子へ再標本化（セル内3x3の最大と平均を 0.62:0.38 で混合）→ 3x3二項フィルタ1パス→ 区分線形で 0..1 へ量子化 → 8bit グレースケールPNG"
+}

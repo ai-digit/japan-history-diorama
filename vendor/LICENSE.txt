@@ -1,0 +1,72 @@
+日本史ジオラマ / Japan History Diorama — vendor/ の他者の著作物に関するライセンス表示
+================================================================================
+
+このディレクトリには **当社が書いていないコード** が入っている。MIT ライセンスは
+「上記著作権表示および本許諾表示を、ソフトウェアのすべての複製または重要な部分に
+含めなければならない」と定めるので、**同梱物と同じツリーに本文を置く**のが本ファイルの目的である。
+リンクや参照で代替しない——配布されるのはこのツリーだからである。
+
+同梱物と出所（2026-08-28 実測・upstream と1バイトも違わないことを確認済み）
+--------------------------------------------------------------------------------
+  vendor/three/three.module.min.js
+      three.js r169 のビルド成果物
+      出所: https://raw.githubusercontent.com/mrdoob/three.js/r169/build/three.module.min.js
+      SHA-256: f7cee3c7533449a1505cc12cb5128b89e3d4fd3d7ea62b05f9f5464a217472ee
+      ファイル先頭に `@license / Copyright 2010-2024 Three.js Authors / SPDX-License-Identifier: MIT`
+
+  vendor/three/addons/controls/OrbitControls.js
+      three.js r169 の頒布物に同梱されているアドオン（出所は下記URLのとおり）
+      出所: https://raw.githubusercontent.com/mrdoob/three.js/r169/examples/jsm/controls/OrbitControls.js
+      SHA-256: 80efaadea4f8a636a65fb0bd08bfef62f3d93a0bb94e2e7500f23176c5c07f4e
+      **このファイル自身はライセンスヘッダを持たない。** three.js 本体と同一の頒布物の一部であり、
+      本体と同じ MIT ライセンスの下にある。ヘッダが無いことは無許諾を意味しない——が、
+      「ヘッダが無いから分からない」状態のまま配らないために、ここに帰属を明記する。
+
+  どちらも **無改変** である。当社は1行も足していない・消していない。
+
+以下は three.js r169 の LICENSE 全文（逐語）
+出所: https://raw.githubusercontent.com/mrdoob/three.js/r169/LICENSE
+SHA-256: 4c40a1ef62450b857c3b2aaf294936304cd552d965fbcd9d32d4c5bcf4ba4454
+================================================================================
+
+The MIT License
+
+Copyright © 2010-2024 three.js authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+--------------------------------------------------------------------------------
+本ファイルが対象としないもの
+--------------------------------------------------------------------------------
+（以下のパスは、この配布物の直下からの相対パスである。この配布に含まれていない
+  ファイルの許諾は、ここでは述べない。）
+
+  * 当社が書いたコード（index.html・lib/）
+        → **Apache License 2.0**。本文は リポジトリ直下の LICENSE、帰属告知は NOTICE。
+  * 解説文（散文）
+        → **CC BY-ND 4.0**。線引きは LICENSE-DATA.md と data/README.md。
+  * 構造化データ（座標・年代・指定区分・出典配列などの事実フィールド）
+        → **CC BY 4.0**。同上。
+  * 地形・海岸線の派生データ（data/dem-japan.png / data/dem-japan.json / data/japan-coast.json）
+        → **当社ライセンスの対象外**。国土地理院コンテンツ利用規約 / Natural Earth（PD）による。
+          出典表記は画面のフッタに常時表示し、標高PNGには tEXt/iTXt で焼き込んである。
+
+  いずれも **本ファイルの MIT の対象外** である（本ファイルが扱うのは vendor/ の他者コードだけ）。
+  リポジトリ全体のライセンスの構成は 直下の LICENSE / NOTICE / LICENSE-DATA.md を参照。
+  **1つのライセンスが全部に掛かっていると読ませない。**
