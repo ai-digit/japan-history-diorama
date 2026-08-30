@@ -6,7 +6,8 @@
 含めなければならない」と定めるので、**同梱物と同じツリーに本文を置く**のが本ファイルの目的である。
 リンクや参照で代替しない——配布されるのはこのツリーだからである。
 
-同梱物と出所（2026-08-28 実測・upstream と1バイトも違わないことを確認済み）
+同梱物と出所（2026-08-28 実測・upstream と1バイトも違わないことを確認済み
+  ／ 下記2件は 2026-08-31 に同じ形で実測して追記）
 --------------------------------------------------------------------------------
   vendor/three/three.module.min.js
       three.js r169 のビルド成果物
@@ -22,7 +23,22 @@
       本体と同じ MIT ライセンスの下にある。ヘッダが無いことは無許諾を意味しない——が、
       「ヘッダが無いから分からない」状態のまま配らないために、ここに帰属を明記する。
 
-  どちらも **無改変** である。当社は1行も足していない・消していない。
+  vendor/three/addons/loaders/GLTFLoader.js
+      three.js r169 の頒布物に同梱されているアドオン（出所は下記URLのとおり）
+      出所: https://raw.githubusercontent.com/mrdoob/three.js/r169/examples/jsm/loaders/GLTFLoader.js
+      SHA-256: 6f1719dcc6a179d30273dfb0de07a8c898a7981f7b08e600b446387f5967371f
+      **このファイル自身はライセンスヘッダを持たない**（`@license` / `Copyright` / `SPDX` の
+      いずれも0件・実測）。OrbitControls.js と同じく three.js 本体と同一の頒布物の一部であり、
+      本体と同じ MIT ライセンスの下にある。ここに帰属を明記する理由も上と同じである。
+
+  vendor/three/addons/utils/BufferGeometryUtils.js
+      three.js r169 の頒布物に同梱されているアドオン（出所は下記URLのとおり）
+      出所: https://raw.githubusercontent.com/mrdoob/three.js/r169/examples/jsm/utils/BufferGeometryUtils.js
+      SHA-256: c25b7930e570e9ec56173cd3b866ec8d2e10016630db3937efb439daf1cedbf6
+      **このファイル自身はライセンスヘッダを持たない**（同上・実測）。扱いは GLTFLoader.js と同じ。
+
+  **4件とも無改変**である。当社は1行も足していない・消していない——4件それぞれの同梱バイト列の
+  SHA-256 が、上記の出所URLから取得した upstream r169 の本文と一致する（2026-08-31 に4件を再実測）。
 
 以下は three.js r169 の LICENSE 全文（逐語）
 出所: https://raw.githubusercontent.com/mrdoob/three.js/r169/LICENSE

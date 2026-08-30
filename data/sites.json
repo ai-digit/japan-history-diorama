@@ -45,7 +45,8 @@
     },
     "selection": "24件は依頼時の指定リスト。残り6件は WS-005 research.md のMVP候補から、縄文・弥生・古墳・飛鳥・奈良/平安・室町の手薄な時代を埋めるために追加した。",
     "tier": "1=国を代表する象徴的な地点 / 2=広く知られる主要地点 / 3=その他の重要地点。地図上のマーカーの大きさに使う（史料的な格付けではない）。",
-    "labels": "label_ja / label_en は地図上のラベルと時代バーのチップに使う短縮名。カードには ja / en の正式名を出す。"
+    "labels": "label_ja / label_en は地図上のラベルと時代バーのチップに使う短縮名。カードには ja / en の正式名を出す。",
+    "eras_seat": "その時代に中央政庁・王城として機能していた時代id。名札が重なった時にどちらを残すかの決着にだけ使う内部の値で、地点の格付けでも表示の見た目でもない（eras の部分集合）。"
   },
   "sites": [
     {
@@ -73,6 +74,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "日本の城が、中身ごと残っている数少ない場所である。慶長五年（1600）に播磨へ入った池田輝政は、その翌年に古い城を壊して普請にかかり、同十四年（1609）に竣工した。姫山と鷺山という二つの丘にまたがり、本丸から西の丸までを段違いに置いて、内堀が螺旋を描いて郭を囲む。五重の大天守と小天守三つ、櫓・門・白い塀は、三の丸をのぞけばほぼ当時の配置のまま立つ。",
       "desc_en": "Here the Japanese castle survives with its interior intact. Ikeda Terumasa, granted Harima in 1600, pulled the old castle down from the following year and finished the new one in 1609. It straddles two hills, stepping the enclosures down from the keep to the western bailey, with the inner moat spiralling around them. The five-roofed great keep, three smaller keeps, the turrets, gates and white plastered walls stand much where he left them.",
       "designated_name": "姫路城跡",
@@ -300,6 +302,9 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [
+        "azuchimomoyama"
+      ],
       "desc_ja": "天下人の城は勝った側に上書きされる——それが地面に残っている場所である。豊臣秀吉が石山本願寺の跡に築いた城は大坂の陣で落ち、徳川幕府は再築のときに本丸へおよそ六メートルの土を盛り、豊臣の石垣を地下に閉じ込めた。いま見える石垣も堀も寛永七年（1630）までの徳川の普請で、秀吉の石垣は昭和五十九年（1984）の発掘で再び現れた。「三国無双」と称えられた城の姿は、記録の中にしかない。",
       "desc_en": "The castle of the man who unified Japan was overwritten by the side that won, and the ground still shows it. Hideyoshi’s castle, raised on the site of the Ishiyama Honganji complex, fell in the sieges of Osaka; rebuilding it, the Tokugawa put some six metres of fill over the main enclosure, sealing the Toyotomi walls underground. Every wall and moat visible today is Tokugawa work finished by 1630; the castle once called unmatched survives only in records.",
       "designated_name": "大坂城跡",
@@ -477,6 +482,10 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [
+        "edo",
+        "meiji"
+      ],
       "desc_ja": "15世紀の館を起点に、徳川将軍家の本拠として日本最大級の城郭へ拡張された。天守は明暦の大火の後に再建されず、明治以降は皇居として使われている。",
       "desc_en": "Beginning as a 15th-century residence, it was enlarged into one of Japan's largest castle complexes as the seat of the Tokugawa shoguns. The keep was never rebuilt after the great fire of 1657, and the grounds have served as the Imperial Palace since 1868.",
       "designated_name": "江戸城跡",
@@ -623,6 +632,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "徳川家康の命で東海道の要として築かれ、屋根に輝く金の鯱で広く知られた。天守と本丸御殿は1945年の空襲で失われ、その後に再建が進められている。",
       "desc_en": "Raised on Tokugawa Ieyasu's orders to command the eastern highway, it became famous for the golden dolphins on its roof. The keep and palace burned in a 1945 air raid, and reconstruction has continued since.",
       "designated_name": "名古屋城跡",
@@ -674,6 +684,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "「難攻不落」が言葉ではなく事実として試された、数少ない城である。加藤清正が築いた石垣は上へ行くほど反り返り、明治十年（1877）の西南戦争では五十日余りの籠城戦を持ちこたえた。ただし開戦直前の火災で天守と本丸御殿は焼け、その原因はいまも特定されていない。平成二十八年（2016）の熊本地震でも被災し、天守の復旧は令和三年（2021）に完了した。近代の戦を経験した、日本で数少ない城でもある。",
       "desc_en": "Few Japanese castles ever had the word 'impregnable' put to an actual test. Katō Kiyomasa's stone walls curve ever more steeply outward toward the top, and in the Satsuma Rebellion of 1877 the garrison held out here for more than fifty days. Yet the keep and the main palace burned just before the fighting began, and the cause of that fire has never been established. It is one of the few Japanese castles to have seen modern warfare.",
       "designated_name": "熊本城跡",
@@ -835,6 +846,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "黒い下見板で覆われた天守が水堀に映ることから「烏城」とも呼ばれる。平地に築かれた城で、現存する天守群としては最も古い部類に入る。",
       "desc_en": "Its keep, clad in black timber and mirrored in the moat, has earned it the nickname Crow Castle. Built on flat ground rather than a hill, its keep group is among the oldest still standing.",
       "designated_name": "松本城",
@@ -885,6 +897,10 @@
         "azuchimomoyama",
         "edo",
         "meiji"
+      ],
+      "eras_seat": [
+        "muromachi",
+        "edo"
       ],
       "desc_ja": "ここは日本の城ではなく、独立した王国の首都だった。琉球王はこの丘に住まいと統治機構の両方を置き、島々に配された神女をつなぐ祭祀もここから動いた。東南アジアから中国・朝鮮・日本までを結ぶ交易が王国を支え、そこから日本とは違う文化が育つ。だからこそ、昭和二十年（1945）に全焼し令和元年（2019）に再び焼けても、再建が試みられ続けている。首里城跡は平成十二年（2000）に世界遺産となった。",
       "desc_en": "This was not a Japanese castle but the capital of an independent kingdom. The Ryūkyū king put both his residence and his government on this hill, and the rites linking priestesses across the islands were run from here too. Trade reaching from Southeast Asia to China, Korea and Japan paid for the kingdom, and out of it grew a culture unlike Japan’s — which is why each loss has been met by another attempt to rebuild. The site became World Heritage in 2000.",
@@ -1091,6 +1107,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "西洋の稜堡式を取り入れた星形の城郭で、開港期の函館を守るために築かれた。戊辰戦争の最後の戦いの舞台となり、現在は公園として整備されている。",
       "desc_en": "A star-shaped fort built on European bastion principles to defend the newly opened port of Hakodate. It became the stage for the final battle of the Boshin War and is now laid out as a public park.",
       "designated_name": "五稜郭跡",
@@ -1140,6 +1157,9 @@
       "eras": [
         "azuchimomoyama",
         "meiji"
+      ],
+      "eras_seat": [
+        "azuchimomoyama"
       ],
       "desc_ja": "織田信長が琵琶湖のほとりに築いた城で、高層の天主を備えた城づくりの転換点とされる。信長の死の直後に焼け落ち、今は石垣と礎石が山肌に残る。",
       "desc_en": "Oda Nobunaga's castle on the shore of Lake Biwa, whose tall tower keep is seen as a turning point in castle design. It burned soon after Nobunaga's death, and today only stone walls and foundation stones remain on the hillside.",
@@ -1271,6 +1291,7 @@
       "eras": [
         "azuchimomoyama"
       ],
+      "eras_seat": [],
       "desc_ja": "1600年、東西の大軍が一日で決着をつけた合戦の地。この結果が徳川政権の成立へとつながり、長い戦乱の時代の区切りとなった。",
       "desc_en": "In 1600 two great coalitions settled the fate of the country here in a single day. The outcome opened the way to Tokugawa rule and marked the end of a long age of civil war.",
       "designated_name": "関ヶ原古戦場",
@@ -1331,6 +1352,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "三方を山に、南を海に囲まれた地形を生かし、武士の政権が置かれた都市。中心に立つ鶴岡八幡宮を軸に、参道と寺社が今も街の骨格をなしている。",
       "desc_en": "Ringed by hills on three sides and open to the sea on the fourth, this town was chosen as the seat of Japan's first warrior government. The shrine of Tsurugaoka Hachimangū and its approach still set the shape of the streets.",
       "designated_name": "鶴岡八幡宮境内",
@@ -1377,6 +1399,9 @@
       "eras": [
         "nara",
         "meiji"
+      ],
+      "eras_seat": [
+        "nara"
       ],
       "desc_ja": "和銅三年（710）の遷都から七十年あまり、奈良時代の政治と文化の中心がこの平野で動いた。大極殿や朝堂院の跡は地上に残り、大正十一年（1922）に指定、昭和二十七年（1952）に特別史跡となった。世界遺産「古都奈良の文化財」にも含まれる。令和四年（2022）に第一次大極殿院の南門が「大極門」として完成し、いまは東楼の復原工事が進む。宮の全体像は、なお明らかになっていない。",
       "desc_en": "For a little over seventy years from 710, the political and cultural centre of Nara Japan worked on this plain. Enough of the palace site survived to be designated in 1922 and made a Special Historic Site in 1952; it is part of the World Heritage ‘Historic Monuments of Ancient Nara’. In 2022 the south gate of the first Daigokuden compound was completed as the Daigokumon, and the east tower is now under way. The full plan of the palace is still not known.",
@@ -1527,6 +1552,7 @@
         "kofun",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "二重の環濠と物見櫓を備えた、弥生時代を代表する大規模集落の跡。守りを固めた造りから、ムラどうしの緊張と社会の階層化がうかがえる。",
       "desc_en": "The remains of a large Yayoi settlement ringed by double moats and watchtowers. Its defensive design hints at tension between communities and a society sorting itself into ranks.",
       "designated_name": "吉野ヶ里遺跡",
@@ -1682,6 +1708,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "伝承が先にあって、地面があとから追いついた場所である。社殿は古代にはるかに高かったと史料や伝承が伝え、平安中期から鎌倉初期の二百年に七度倒れた記録が残る。境内の旧本殿跡から出た鎌倉時代の大柱は、その高さを確かめる手がかりとして平成二十二年（2010）に重要文化財となった。いまの本殿は延享元年（1744）の造営で、大社造・檜皮葺、千木の先までは約二十四メートルある。",
       "desc_en": "Here tradition came first and the ground caught up later. Records and legends hold the main hall once stood far higher than it does now, and over the two centuries from mid-Heian to early Kamakura it is documented as collapsing seven times. Enormous Kamakura-period pillars dug from the former hall site were designated Important Cultural Properties in 2010, giving the tradition something to test. The present hall dates from 1744 and rises about 24 metres.",
       "designated_name": "出雲大社本殿",
@@ -1881,6 +1908,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "島そのものが神聖なものとされたから、社殿は陸ではなく海の上に置かれた。十二世紀に平清盛が造営した社殿群は、当時の貴族の住まいの形を引いている。貞応二年（1223）の火災ののち仁治二年（1241）に建て直され、その後も歴代の政権が庇護してきた。十七世紀ごろには日本三景の一つに数えられ、祈りの場は見に行く場所にもなる。海に木を立てるという無理を、八百年ぶん誰かが支え続けた社である。",
       "desc_en": "Because the island itself was held sacred, the shrine was set not on land but out over the tidal water. The buildings Taira no Kiyomori raised in the twelfth century borrow the form of an aristocratic house of his day. Burnt in 1223, rebuilt in 1241, and protected by one government after another since, the shrine is an eight-hundred-year answer to the problem of standing timber in the sea.",
       "designated_name": "厳島",
@@ -2159,6 +2187,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "徳川の京での拠点として築かれ、その徳川の世が終わったのもこの城だった。慶長八年（1603）に徳川家康が築き、同年三月に自ら初めて入城している。寛永三年（1626）の後水尾天皇の行幸に備えて、城は今の広さまで広げられた。そして慶応三年（1867）十月、十五代将軍慶喜はこの城中から朝廷へ上表し、政権を返した。二百六十年余りの武家の政権が、ここで畳まれている。",
       "desc_en": "Built as the Tokugawa base in the imperial capital, it was also where Tokugawa rule ended. Ieyasu raised it in 1603 and entered it himself that spring. The castle was enlarged to the extent seen today in preparation for Emperor Go-Mizunoo’s visit of 1626. And in the tenth month of 1867 the fifteenth shogun, Yoshinobu, sent up a memorial from inside these walls returning power to the throne. Two and a half centuries of warrior rule were folded up here.",
       "designated_name": "旧二条離宮（二条城）",
@@ -2297,6 +2326,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "会津盆地を治める拠点として長く使われた城で、その名を広く知らしめたのは戊辰戦争である。旧幕府方として最後まで抗した会津は激しい攻防の末に開城し、明治七年（1874）に城は取り壊された。天守が再建されたのは昭和四十年（1965）のことである。",
       "desc_en": "For centuries the stronghold governing the Aizu basin, it owes its wide renown chiefly to the Boshin War. Aizu, holding out to the last for the former shogunate, surrendered the castle only after fierce fighting; it was torn down in 1874, and the keep was not rebuilt until 1965.",
       "designated_name": "若松城跡",
@@ -2345,6 +2375,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "伊達政宗が青葉山に築いた城で、天守を持たず地形の険しさを守りとした。建物は近代に失われ、石垣と城下を見渡す眺めが残る。",
       "desc_en": "Date Masamune's castle on Mount Aoba, which relied on steep terrain rather than a tower keep for its defence. The buildings were lost in the modern era, leaving the stone walls and a wide view over the city below.",
       "designated_name": "仙台城跡",
@@ -2394,6 +2425,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "加賀百万石と呼ばれた前田家の居城で、白い鉛瓦となまこ壁の櫓が特徴。度重なる火災で建物は失われ、近年になって忠実な木造復元が進められている。",
       "desc_en": "Seat of the wealthy Maeda house, distinguished by pale lead roof tiles and lattice-plastered turrets. Repeated fires destroyed the buildings, and careful timber reconstructions have gone up in recent decades.",
       "designated_name": "金沢城跡",
@@ -2442,6 +2474,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "市街を見下ろす勝山の頂に建つ、連立式の天守を持つ城。現存する天守としては新しい部類で、幕末に再建されたものが今に伝わる。",
       "desc_en": "A castle crowning Mount Katsuyama above the city, with keeps linked into a single connected group. Its surviving keep is one of the later ones, rebuilt in the closing years of the shogunate.",
       "designated_name": "松山城跡",
@@ -2490,6 +2523,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "山内一豊が築いた城で、天守と本丸御殿がともに残る全国でも珍しい例。雨の多い土地に合わせ、石垣には排水のしくみが組み込まれている。",
       "desc_en": "Built by Yamauchi Kazutoyo, and unusual in Japan for keeping both its keep and its main palace. Suited to a rainy region, drainage spouts are built into its stone walls.",
       "designated_name": "高知城跡",
@@ -2541,6 +2575,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "木曽川を見下ろす崖の上に立つ小ぶりな城で、川と街道を押さえる要所だった。現存天守のなかでも古い形式を伝えるとされる。",
       "desc_en": "A compact castle on a bluff above the Kiso River, holding a key point on both river and highway. Its keep is counted among the oldest in form of those still standing.",
       "designated_name": "犬山城跡",
@@ -2589,6 +2624,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "琵琶湖の東岸に築かれ、井伊家が代々治めた城。廃城の流れのなかで取り壊しを免れ、天守や櫓、庭園がまとまって残っている。",
       "desc_en": "Raised on the east shore of Lake Biwa and held for generations by the Ii house. It escaped the wave of demolitions in the modern era, keeping its keep, turrets and garden together as a set.",
       "designated_name": "彦根城跡",
@@ -2640,6 +2676,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "島原半島の海沿いに築かれた城で、廃城後の1637年から翌年にかけて、島原と天草の一揆勢が立てこもる場となった。鎮圧後に徹底的に壊され、現在は静かな丘の遺構が残る。",
       "desc_en": "A coastal castle on the Shimabara Peninsula which, though already abandoned, became the site of a siege during the Shimabara–Amakusa uprising of 1637–38. It was thoroughly razed afterwards, and quiet earthworks remain on the headland today.",
       "designated_name": "原城跡",
@@ -2797,6 +2834,7 @@
         "jomon",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "千年以上にわたって人が住み続けた、縄文時代の大きな集落の跡。栗の木を育てて使っていたことが分かっており、狩猟採集だけではない暮らしの姿を伝える。",
       "desc_en": "The remains of a large Jōmon settlement lived in for well over a thousand years. Evidence that its people tended chestnut trees points to a way of life that went beyond simple hunting and gathering.",
       "designated_name": "三内丸山遺跡",
@@ -2925,6 +2963,7 @@
         "kofun",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "水田と住居がまとまって見つかった弥生時代の集落跡。あぜで区切られた田の跡から、稲作を軸にした村の暮らしが具体的に読み取れる。ムラは古墳時代に入ってからも営まれた。",
       "desc_en": "A Yayoi settlement where paddy fields and dwellings were uncovered together. The banked divisions between the fields give an unusually concrete picture of village life built around rice. The village went on being lived in after the Kofun period had begun.",
       "designated_name": "登呂遺跡",
@@ -3060,6 +3099,7 @@
         "edo",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "権力を「大きさ」で示すという発想が、ここで極まった。四世紀後半から五世紀後半、大阪平野の台地に鍵穴形の墳墓が群れをなして築かれ、三重の濠をめぐらすこの墳丘は、宮内庁が管理する陵墓のなかで面積が最大規模になる。被葬者をめぐる議論は続いており、宮内庁は仁徳天皇の陵として管理し、世界遺産には「仁徳天皇陵古墳」の名で記載されている。築造からおよそ千六百年、その形はなお並外れて残る。",
       "desc_en": "Here the idea of showing power by size reached its limit. Between the late fourth and late fifth centuries, keyhole-shaped tombs were raised in clusters on the terraces of the Osaka plain; ringed by three moats, this mound is the largest by area of the tombs the Imperial Household Agency administers. Who was buried here is still discussed: the Agency holds it to be the tomb of Emperor Nintoku, and the World Heritage list names it Nintoku-tennō-ryō Kofun.",
       "designated_name": "",
@@ -3181,6 +3221,9 @@
       "eras": [
         "asuka",
         "meiji"
+      ],
+      "eras_seat": [
+        "asuka"
       ],
       "desc_ja": "飛鳥時代に宮が置かれた一帯で、複数の宮殿の跡が同じ場所に重なって見つかっている。仏教の受容と律令の整備が進んだ時期の中心地だった。",
       "desc_en": "The area where the court sat through the Asuka period, with traces of several successive palaces found layered on the same ground. It was the country's centre while Buddhism took hold and a law-based state took shape.",
@@ -3325,6 +3368,7 @@
         "heian",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "奈良時代に置かれた東北の政治・軍事の拠点で、区画された役所の跡が広がる。都から遠く離れた地に国の仕組みを及ぼそうとした試みの跡でもある。",
       "desc_en": "The seat of civil and military administration for the northeast, laid out in the Nara period, its planned government compounds still readable on the ground. It marks an attempt to extend the machinery of the state far from the capital.",
       "designated_name": "多賀城跡",
@@ -3489,6 +3533,7 @@
         "muromachi",
         "meiji"
       ],
+      "eras_seat": [],
       "desc_ja": "谷あいに築かれた戦国大名の城下町で、館・武家屋敷・町屋の区画が埋もれたまま残った。焼き討ちの後に作り直されなかったため、当時の町割りがそのまま読み取れる。",
       "desc_en": "The castle town of a warring-states lord, laid out along a narrow valley, where the lord's residence, samurai quarters and townhouse plots survived buried in place. Never rebuilt after it was burned, its street plan can still be read whole.",
       "designated_name": "一乗谷朝倉氏遺跡",

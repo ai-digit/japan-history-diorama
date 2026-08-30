@@ -204,6 +204,39 @@
     content:""; position:absolute; left:50%; bottom:-4px; width:8px; height:8px;
     background:inherit; transform:translateX(-50%) rotate(45deg); border-radius:1px;
   }
+  /* G-256 I-7（任意）: 吹き出しの尻尾も級数に比例させる。8px を基準に tier1=9 / tier3=7。
+     `bottom` は必ず幅の半分の負値（回転した正方形の対角が半分だけ外へ出る量）。
+     `::after` は `position:absolute` なので**箱の寸法には一切効かない**——
+     V-E（実矩形の高さ）や V-I（当たり判定の推定）の数値はこの2行では動かない。 */
+  .lbl[data-tier="1"]::after{ width:9px; height:9px; bottom:-4.5px; }
+  .lbl[data-tier="3"]::after{ width:7px; height:7px; bottom:-3.5px; }
+
+  /* G-256: tierによる重要度階層。tier2は無指定＝上の .lbl がそのままtier2の定義になる。
+     （「なぜtier2だけ規則が無いのか」の答え——tier2 は基準であり、基準に別名を与えると
+     `.lbl` と `.lbl[data-tier="2"]` の2箇所を同時に直す義務が生まれる。1箇所にしておく。）
+     朱（--accent）はtier色に使わない——選択(.on)専用の色を重要度表現に流用すると
+     「これは選択中か？」の誤読を招く（§2「同時1〜2個」予算にも抵触する）。
+     意匠のよりどころは史跡の名跡板・高札（黒地に白で名前を掲げる実在の意匠）。
+     地色の反転が主力・サイズは補強——反転は解像度に依存しないので 320px 幅でも潰れない。
+     **この2つの規則を動かしたら、`LBL_TIER`（当たり判定の推定表）も同時に動かすこと。**
+     片方だけ直すと「見た目は変わったのに重なり判定は変わらない」齟齬が起きる。 */
+  .lbl[data-tier="1"]{
+    font-size:13px; font-weight:700; padding:6px 12px 7px;
+    background:var(--ink); color:var(--paper);
+    /* 0 0 0 1px paper は #inset と同じ「紙の縁取り」技法の流用——
+       どんな地形色の上でも輪郭が消えないための keyline。影ではないので暖色縛りの対象外。 */
+    box-shadow:0 0 0 1px var(--paper), var(--shadow), var(--rule-gold);
+  }
+  .lbl[data-tier="3"]{
+    font-size:10.5px; font-weight:500; padding:3px 8px 4px;
+    color:var(--ink-soft); box-shadow:none;
+    /* background は var(--paper) のまま変えない（tier2と同じ）——地色は反転させず、
+       太さ・寸法・文字色・影の有無だけで一段引く。10.5px が床（§4「潰れたら負け」と同じ考え方）。 */
+  }
+  /* 以下2行は tier より**後**に置く（詳細度は同じなのでソース順で後勝ち）。
+     §6-2 の宣言どおり `.on`（選択・朱）＞ `.dim`（時代内で存在薄い）＞ tier の順で強い。
+     dim が font-size を触らないのは意図的——「重要な城でも、まだ/もう無い時代では沈む」
+     という時間の表現に、重要度の寸法まで巻き込まないため（別の軸を混ぜない）。 */
   .lbl.dim{ background:rgba(255,253,248,.62); color:var(--ink-faint); font-weight:500; box-shadow:none; }
   .lbl.on{ background:var(--accent); color:var(--paper); box-shadow:var(--shadow-soft); }
   /* 寄っている間、主役以外は静かに退く（Google Earth Voyager から借りた作法。
@@ -327,6 +360,10 @@
     background:var(--paper-solid); border-radius:var(--r);
     box-shadow:var(--shadow), var(--rule-gold);
     padding:14px 20px 15px;
+    /* G-278: 広幅でカードを開くと、この板は主役をカードへ譲って**額縁を外し**（金罫＋影を
+       消す）**わずかに沈む**（下の `@media not all and (max-width:360px)`）。額縁と減光の
+       切り替えを滑らかに——`prefers-reduced-motion` では末尾の一括規則が .08s に丸める。 */
+    transition:opacity .22s ease, box-shadow .22s ease;
   }
   #era-top{ display:flex; align-items:baseline; gap:10px; margin-bottom:2px; flex-wrap:wrap; }
   /* 時代名は明朝（§3-3 の4面のうちの1つ）。 */
@@ -460,7 +497,7 @@
      置き場所が時代バーの中から折り返しの下（#belowfold-inner）へ移っただけで、
      文言・リンク・文字の大きさ・行数はどれも同じである。
      ライセンス上の義務（GSIコンテンツ利用規約 令和7年11月20日改正・
-     `meeting/sources-shino.md` §4-3・D-0029 決定5）であって、デザイン都合で削れない。 */
+     `sources-shino` §4-3・D-0029 決定5）であって、デザイン都合で削れない。 */
   #attrib{
     margin-top:11px; padding-top:9px; border-top:1px solid rgba(216,161,58,.38);
     font-size:9.5px; color:var(--ink-faint); line-height:1.7;
@@ -529,7 +566,22 @@
     #card.open{ transform:none; }
     #erabar{ padding:10px 10px calc(8px + var(--safe-b)); }
     #erabar-inner{ padding:11px 14px 12px; border-radius:var(--r); }
-    #era-sum{ font-size:11.5px; min-height:0; max-height:3.4em; overflow:hidden; }
+    /* G-257: 行数は固定しない。直す前の `max-height:3.4em; overflow:hidden` は、
+       **語の途中で文を切ったうえに、切れている印を1つも出さない**指定だった——
+       実測（`build/measure-erasum.mjs`・2026-08-29）で 320x640 は日英とも**全11時代**が
+       切れており、いちばん壊れて見えるのは英語の室町で **188字のうち96字が消え、
+       文がカンマで終わっているように読めた**（ja 江戸は「独自の成熟が進」で終わっていた）。
+       開示は1文字も削らないと決めておきながら（§5-2）、自社の説明文だけを黙って削るのは
+       筋が通らない。
+       **今日の実文は日英とも4行に収まる**（実測: ja 最大3行 / en 最大4行・320/390/768 の
+       全時代）。だから上限は「今日の文を削る値」ではなく**帯を守るための歯止め**として
+       4行に置き、溢れた分には `-webkit-line-clamp` が必ず「…」を出す。
+       上限に当たった日は `check-layout.mjs` の SC-7 が「1文字も隠れていない」を破って
+       赤で教える——**黙って消えることはもう起きない**。 */
+    #era-sum{
+      font-size:11.5px; min-height:0;
+      display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:4; overflow:hidden;
+    }
     #era-ticks button{ font-size:9px; }
     #attrib{ font-size:8.5px; margin-top:8px; padding-top:7px; }
     /* 折り返しの下の器も**時代バーと同じ値**に揃える（上の #belowfold-inner の理由と同じ。
@@ -586,6 +638,32 @@
     #card.open ~ #erabar #era-sum,
     #card.open ~ #erabar #sitechips{ display:none; }
     #card.open ~ #erabar #era-restore{ display:block; }
+  }
+
+  /* G-278: 「主役をひとつに」を**全幅**へ。§5-4 H-1（上の 360px ブロック）は、カードを
+     開いているあいだ時代バーの可変2つ（要約文・近道）を**退避**（display:none）させて
+     主役をカードへ一本化する処置だが、これは高さ640の縦予算を空けるための策で
+     `@media (max-width:360px)` に閉じていた。**主役を1つにする効き目は全幅で要る**のに、
+     広幅ではその効き目が一切無く、デスクトップ 1280x720 では時代バーの板が
+     カードの **1.81倍の面積で同じ明るさ**のまま並んでいた（実測・G-278 の真因＝二枚看板）。
+     広幅は縦予算があるので退避で器を消すのはかえって唐突——器は残す。二枚看板の正体は
+     **カードと同じ額縁**（金罫＋影＝`box-shadow` の2枚重ね）を持つ「第二の板」なので、
+     カードを開いているあいだは**その額縁を外す**（`box-shadow:none`）。額縁を外すと、板は
+     「浮いた第二のカード」ではなく**地に着いた下部バー**に降格し、満額の額縁を保つカードだけが
+     主役として残る（＝主役解消の本体はこちら）。あわせて **opacity を .9 へわずかに落とす**——
+     選んでいない側は「同じ強さで主張し続けない・静かに退く」作法（寄り時の名札
+     `body[data-zoom="1"] .lbl:not(.on)` と同型・art-direction）だが、**.9 より下げない**のは
+     要約文（--ink-soft）が素で 6.1:1 とコントラストの床に近く、要約行の背後は下部の海・霞で
+     明色（実測 rgb(227,231,226)）なので、**opacity を下げるほど AA(4.5:1) を割る**ため
+     ——実測で .8→3.98:1／.85→4.41:1／**.9→4.91:1（AA可）**。だから減光は AA を守る .9 に留め、
+     主役を1つにする仕事は「額縁を外す」側に担わせる（閉じれば両方向で戻る）。
+     **狭幅は退避のまま／広幅は額縁を外して薄く減光**の出し分けは寸法別の縦予算で決めた
+     （実測: 320x640 は縦640で逼迫＝退避が要る／390・768・1280 は縦予算があり額縁除去＋薄減光で
+     足りる）。器の高さは変えないので G-215 の折り返しにも G-257 の要約 clamp にも触れない。
+     境界は狭幅（max-width:360px）の**厳密な補集合** `not all and (max-width:360px)`——360〜361px の
+     小数幅にも穴が空かない（G-278 Codex 所見）。板は残り操作もできる（pointer は生きている）。 */
+  @media not all and (max-width: 360px){
+    #card.open ~ #erabar #erabar-inner{ opacity:.9; box-shadow:none; }
   }
   @media (prefers-reduced-motion: reduce){
     *{ animation-duration:.001s !important; transition-duration:.08s !important; }
@@ -745,6 +823,7 @@ import {
   relieveCrowding, reliefFloor, markerGrow, pickAnchorHeight, PICK_RADIUS, LABEL_ALIVE_MIN,
   makeLandIndex, planHills, installElevationGrid, elevationSource, unitToMeters,
   siteInEra, lifespanText, sitePhaseText, timelineAt, kindAt, labelAt, kindsOf, hasTimeline,
+  castleFormOf, CASTLE_FORMS,
   INSET_LAT_MAX, isInsetSite, insetFolded,
   clamp, lerp, damp, easeInOutCubic, hash2, valueNoise,
 } from './lib/mapcore.js';
@@ -967,6 +1046,30 @@ async function loadElevation() {
 let renderer, scene, camera, controls, clock;
 let coast, sitesDoc, erasDoc, ERAS, ERA_IDS, SITES, proj;
 let markerGroups = [], padMesh = null, shadowMesh = null, highlightRing = null;
+// G-284（G-67 の受け皿）: **城として描かれる地点を、Blender 製の低ポリ天守 .glb で描く**。
+// G-67 は姫路1城・`?castle3d=1` のスパイクだった。ここでフラグを外して**既定の姿**にし、
+// 3類型（望楼型 / 層塔型 / 平城）を 16 地点へ焼き回す。どの地点がどの型かは
+// `mapcore.js castleFormOf()`——**純粋関数**で、`sites.jsonl` は読むだけ・値には触れない。
+//
+// **絵だけの差し替えである**、というのが G-67 で実測した継ぎ目の全部である。モデルは
+// 正規化して SHAPE_KEEP と同じ envelope（高さ `shapeHeight` / 足元 y=0）に収め、手続き的天守と
+// **同一の合成行列**で置く。`s.topY / s.footR / s.viewFootR` は SHAPE_KEEP から算いたまま
+// 動かさないので、当たり判定(G-241)・譲り(G-11)・融合(SC-6)には何も起きない
+// （mapcore.js はメッシュを見ず**スカラーだけ**を見る＝構造的に壊せない）。
+//
+// 読み込みは非同期・非ブロッキングで、**失敗したら手続き的天守のまま**動く（`dryrun.mjs` は
+// bare 指定子を解決できないので必ずこちらへ落ちる＝偽DOMの実走検査は模型無しで通り続ける）。
+// モデルは出荷許可リストへ載せた——G-67 の時点で「まだ載っていない」ことが、
+// フラグを既定 OFF にしていた理由だった。その理由はもう無い。
+// URL は**静的な文字列**で持つ。静的検査の `assetRefs()` がこの3行を拾い、
+// `check-html.mjs` が出荷物での実在を fail-closed で確かめる（許可リストの書き漏れが赤になる）。
+const CASTLE_MODEL_URL = {
+  boro: './models/castle-boro.glb',
+  soto: './models/castle-soto.glb',
+  hirajiro: './models/castle-hirajiro.glb',
+};
+/** 手続き的天守の群（型の群が受け持てなかった時のために掴んでおく）。 */
+let proceduralCastleGroup = null;
 let waterLayers = [];
 let labelEls = new Map();
 const tmpV = new THREE.Vector3();
@@ -989,7 +1092,7 @@ async function main() {
   ]);
   ERAS = erasDoc.eras;
   ERA_IDS = ERAS.map((e) => e.id);
-  SITES = sitesDoc.sites.map((s) => ({ ...s, alive: 0, aliveTarget: 0, pos: null, sx: 0, sy: 0, onScreen: false }));
+  SITES = sitesDoc.sites.map((s) => ({ ...s, alive: 0, aliveTarget: 0, seat: false, pos: null, sx: 0, sy: 0, onScreen: false }));
 
   proj = makeProjection(coast.bbox, { targetSize: MAP_SIZE });
 
@@ -1012,6 +1115,7 @@ async function main() {
   buildHills();
   say('城を建てています', 'raising castles');
   buildMarkers();
+  loadCastleModels();          // G-284: 城を Blender 製 .glb へ（非ブロッキング・失敗は手続き的天守）
   buildLabels();
   buildInset();
 
@@ -1677,6 +1781,12 @@ function prepareSites() {
     // timeline で姿が変わる地点は、取りうる kind をぜんぶ持つ（スロットを確保する）
     s.kinds = kindsOf(s);
     s.slots = new Map();
+    // G-284: この地点を城として描く時の天守の型（`null`＝城にならない地点）。
+    // **`castle` を取りうる地点にしか訊かない**——古墳や集落遺跡に「城として描くなら何型か」を
+    // 訊くと、`keep_built` を持たないという理由だけで平城が返る（訊いてはいけない問いである）。
+    s.castleForm = s.kinds.includes('castle') ? castleFormOf(s, 'castle') : null;
+    // 実際にモデルが載ったかは読み込み後に決まる。載るまでは手続き的天守が受け持つ。
+    s.modelForm = null;
     // 山を避ける半径は「取りうる姿のうち最大」で決める。時代を動かすたびに
     // 山が生えたり消えたりしたら、地形が信用できなくなる。
     s.footR = Math.max(...s.kinds.map((k) => shapeRadius(SHAPE_OF[k] || SHAPE_KEEP))) * s.mscale;
@@ -1771,7 +1881,11 @@ function buildMarkers() {
     }
     // 索引を持たせておく（refreshMarkerMatrices が sites 順に回すため）
     list.forEach((s, i) => { s.slots.set(kind, i); });
-    markerGroups.push({ kind, sites: list, meshes });
+    const group = { kind, form: null, sites: list, meshes };
+    markerGroups.push(group);
+    // G-284: モデルが読めた地点はこの群が畳まれ、型ごとの群が受け持つ。読めなければ
+    // ここが受け持ち続ける（＝**出荷サイトはモデルが1体も無くても成立する**）。
+    if (kind === 'castle') proceduralCastleGroup = group;
   }
   console.info('[map] markers:', [...byKind].map(([k, v]) => `${k}:${v.length}`).join(' '),
                '/ 時代で姿が変わる地点:', SITES.filter(hasTimeline).map((s) => s.id).join(',') || 'なし');
@@ -1785,6 +1899,182 @@ function buildMarkers() {
   highlightRing.renderOrder = 3;
   highlightRing.visible = false;
   scene.add(highlightRing);
+}
+
+/**
+ * G-284: 型ひとつぶんの天守モデルを **InstancedMesh の群** に焼く。
+ *
+ * .glb の中身は「材質ごとに分かれた数個のメッシュ」なので、手続き的天守が
+ * `SHAPE_KEEP` のパーツごとに InstancedMesh を作るのと**同じ構造**に落ちる。
+ * 型は3つしか無いので、16地点ぶんのジオメトリは **3体ぶんしか要らない**（焼き回す）。
+ *
+ * envelope 正規化は G-67 と同じ: 足元を y=0 へ、xz を中心へ、全高を `shapeHeight(SHAPE_KEEP)` へ。
+ * **ジオメトリ側に焼く**（G-67 は Group の position/scale で持っていた）——InstancedMesh は
+ * 器の変換を持てないので、正規化を頂点に入れておかないと `sc` 1本で置けない。
+ */
+function prepareCastleModelGroup(form, gltf, keepH) {
+  const sites = SITES.filter((s) => s.castleForm === form);
+  if (!sites.length) return null;
+
+  gltf.scene.updateWorldMatrix(true, true);
+  const parts = [];
+  gltf.scene.traverse((o) => {
+    if (!o.isMesh) return;
+    const geo = o.geometry.clone();
+    geo.applyMatrix4(o.matrixWorld);                 // ノードの変換を頂点へ焼く
+    const hex = (o.material && o.material.color) ? o.material.color.getHex() : 0xffffff;
+    parts.push({ geo, hex });
+  });
+  if (!parts.length) return null;
+
+  // 全パーツをまとめた箱で正規化する（パーツ単位で正規化すると形がばらける）
+  const box = new THREE.Box3();
+  for (const p of parts) { p.geo.computeBoundingBox(); box.union(p.geo.boundingBox); }
+  const size = new THREE.Vector3(); box.getSize(size);
+  const center = new THREE.Vector3(); box.getCenter(center);
+
+  // **envelope が壊れているモデルを「読めた」と扱わない。**（Codex 敵対レビュー G-284 #1/#2/#3）
+  // 全高 0 の .glb（板になったモデル）や、頂点に NaN/Infinity が1つでも混ざった .glb は、
+  // `size.y > 0 ? … : 1` のような目こぼしを書くと **k=1 のまま正常扱いで通ってしまう**。
+  // 通ると手続き的天守のほうが畳まれるので、**画面から城が消えたのに検査は緑**になる。
+  // ここで throw して、呼ぶ側の catch で丸ごと手続き模型へ倒す（＝壊れ方を1本に絞る）。
+  const finite = (v) => Number.isFinite(v);
+  if (!finite(size.y) || size.y <= 0 || !finite(center.x) || !finite(center.z) || !finite(box.min.y)) {
+    throw new Error(`castle model ${form}: envelope が壊れています`
+      + `（高さ=${size.y} 中心=${center.x},${center.z} 足元=${box.min.y}）`);
+  }
+  const k = keepH / size.y;
+  if (!finite(k) || k <= 0) throw new Error(`castle model ${form}: 正規化倍率が ${k}`);
+
+  const meshes = [];
+  for (const p of parts) {
+    p.geo.translate(-center.x, -box.min.y, -center.z);   // 足元 y=0・xz 中心
+    p.geo.scale(k, k, k);                                 // 全高を SHAPE_KEEP に合わせる
+    // 手続き的天守と同じ絵作り（MeshToonMaterial は flatShading を持たないので facet で面を割る）
+    const im = new THREE.InstancedMesh(facet(p.geo), toon(p.hex), sites.length);
+    im.castShadow = true;
+    im.receiveShadow = true;
+    im.frustumCulled = false;
+    meshes.push(im);        // **まだ scene へ入れない**（下の commit まで、この群は在って無い）
+  }
+  return { kind: 'castle', form, sites, meshes };
+}
+
+/**
+ * G-284: 天守モデル3体を読み込んで、城の地点をそちらへ渡す（非同期・非ブロッキング）。
+ *
+ * **失敗は全部まとめて手続き的天守へ倒す**（`Promise.all`）。1体だけ落ちた時に
+ * 「望楼型はモデル・層塔型は積み木」という混ざった絵を出さないため——絵の整合は
+ * 見た目の問題ではなく、**どの城が3D化済みかを訪問者が誤読する**問題である。
+ * `dryrun.mjs` は bare 指定子を解決できないので必ずここへ落ちる（＝偽DOMの実走は模型無しで通る）。
+ */
+async function loadCastleModels() {
+  const forms = CASTLE_FORMS.filter((f) => SITES.some((s) => s.castleForm === f));
+  if (!forms.length) return;
+  try {
+    const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
+    const loader = new GLTFLoader();
+    const gltfs = await Promise.all(forms.map((f) => new Promise((res, rej) =>
+      loader.load(CASTLE_MODEL_URL[f], res, undefined, rej))));
+    const keepH = shapeHeight(SHAPE_KEEP);                 // 単位空間の全高（≒0.665）
+    // **組み立てと据え付けを分ける（二相コミット）。**（Codex 敵対レビュー G-284 #4/#5）
+    // `forms.map(...)` の途中で1体が throw した時、その前の型は既に scene へ入り
+    // `s.modelForm` も付いていた——「失敗は全部まとめて手続き模型へ倒す」という上の約束が
+    // **その場合だけ破れて**、モデルの城と積み木の城が混ざった画面になる。さらに、
+    // markerGroups に入る前に落ちた InstancedMesh は**行列を誰も更新しない孤児**として
+    // 単位行列のまま原点に残る（列島の中央に巨大な天守が1体立つ）。
+    // 先に3体ぶんを全部組み立て、**1体でも欠けたらここへ来ない**ようにしてから据え付ける。
+    const staged = forms.map((f, i) => prepareCastleModelGroup(f, gltfs[i], keepH)).filter(Boolean);
+    for (const g of staged) {                              // ← ここから先は失敗しない操作だけ
+      for (const im of g.meshes) scene.add(im);
+      markerGroups.push(g);
+      for (const s of g.sites) s.modelForm = g.form;        // この地点は型の群が受け持つ
+    }
+    // 全部の城がモデルへ移ったら、手続き的天守の群は描かない（畳んだ分の描画を消す）。
+    // **消さずに残す**——1体でも移れなかった地点があればここが受け持ち続ける。
+    if (proceduralCastleGroup && proceduralCastleGroup.sites.every((s) => s.modelForm)) {
+      for (const im of proceduralCastleGroup.meshes) im.visible = false;
+    }
+    const built = staged;
+    markersDirty = true;
+    if (typeof window !== 'undefined') installCastleProbe();
+    console.info('[map] castle models:', built.map((g) => `${g.form}:${g.sites.length}`).join(' '),
+                 '/ 手続き模型のまま:', SITES.filter((s) => !s.castleForm).length, '地点');
+  } catch (e) {
+    // console.error は dryrun が失格扱いにするので info。手続き的天守のまま動く。
+    console.info('[map] castle models skipped (procedural keep):', String((e && e.message) || e));
+  }
+}
+
+/**
+ * 差し替えの継ぎ目を**外から測れるようにする**読み取り専用のフック（実ブラウザの probe が読む）。
+ *
+ * G-67 ではこれを `?castle3d=1` の中に置いていた。フラグを外したいま**同じ物を常に置く**
+ * ——検証だけフラグの内側にあると、「測った版」と「出荷する版」が別物になる。
+ * ここが読ませるのは寸法と箱だけで、書き込む口は持たない。
+ */
+function installCastleProbe() {
+  const groupOf = (s) => markerGroups.find((g) => g.form && g.sites.includes(s)) || null;
+  window.__CASTLE3D__ = {
+    markerY: MARKER_Y,
+    keepH: shapeHeight(SHAPE_KEEP),
+    keepR: shapeRadius(SHAPE_KEEP),
+    /**
+     * 手続き的天守の群が、いま何体ぶん描かれているか（二重描画の検出）。
+     * モデルが全城を受け持ったら 0 でなければならない——0 でなければ、同じ場所に
+     * 積み木の城とモデルが重なって立っている。
+     */
+    proceduralCastlesDrawn: () => {
+      const g = proceduralCastleGroup;
+      if (!g || !g.meshes.length) return 0;
+      // **実際の行列を読む。** `!s.modelForm` の地点を数えるだけだと、モデルが載った地点で
+      // 手続き側の行列が畳まれ損ねていても 0 を返す＝二重描画を見逃す（Codex #18）。
+      // 検査は「そうなっているはず」ではなく「そうなっている」を読まなければ意味が無い。
+      const m = new THREE.Matrix4();
+      const drawn = new Set();
+      for (const im of g.meshes) {
+        if (!im.visible) continue;
+        for (let i = 0; i < g.sites.length; i++) {
+          im.getMatrixAt(i, m);
+          // 畳んだインスタンスは scale 0（compose した行列の対角が全部 0 になる）
+          if (m.elements[0] !== 0 || m.elements[5] !== 0 || m.elements[10] !== 0) drawn.add(g.sites[i].id);
+        }
+      }
+      return drawn.size;
+    },
+    /** モデルが受け持っている地点の、継ぎ目のスカラー一式。 */
+    sites: () => SITES.filter((s) => s.modelForm).map((s) => ({
+      id: s.id, form: s.modelForm, tier: s.tier, viewKind: s.viewKind,
+      mscale: s.mscale, alive: s.alive, relief: s.relief,
+      topY: s.topY, viewFootR: s.viewFootR, footR: s.footR,
+    })),
+    /** 実際に描かれている模型の箱（インスタンス行列 × ジオメトリの箱）。 */
+    boxOf: (id) => {
+      const s = SITES.find((x) => x.id === id);
+      const g = s && groupOf(s);
+      if (!g) return null;
+      const at = g.sites.indexOf(s);
+      const box = new THREE.Box3();
+      const m = new THREE.Matrix4();
+      for (const im of g.meshes) {
+        im.getMatrixAt(at, m);
+        if (!im.geometry.boundingBox) im.geometry.computeBoundingBox();
+        box.union(im.geometry.boundingBox.clone().applyMatrix4(m));
+      }
+      return { minY: box.min.y, maxY: box.max.y, h: box.max.y - box.min.y };
+    },
+    /** 地点をカメラで CSS px へ投影（probe のクリック用）。 */
+    screenOf: (id) => {
+      const s = SITES.find((x) => x.id === id);
+      if (!s || !s.pos) return null;
+      const v = s.pos.clone().project(camera);
+      const rect = renderer.domElement.getBoundingClientRect
+        ? renderer.domElement.getBoundingClientRect()
+        : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+      const w = rect.width || window.innerWidth, h = rect.height || window.innerHeight;
+      return { x: (rect.left || 0) + (v.x * 0.5 + 0.5) * w, y: (rect.top || 0) + (-v.y * 0.5 + 0.5) * h };
+    },
+  };
 }
 
 /** alive の値と「その時代の姿」からマーカーの変換行列を作り直す。 */
@@ -1803,10 +2093,15 @@ function refreshMarkerMatrices() {
       // 寄っている間、主役以外は一段小さくして退く（ラベルの退色と対にする）。
       const back = state.zoom && state.zoom !== s.id ? ZOOM_BACK : 1;
       const hide = folded && isInsetSite(s);
+      // G-284: 城は「型ごとの群（`g.form`）」と「手続きの群（`g.form` は null）」が同じ
+      // `castle` という kind を分け合う。**その地点をいま描くのはどちらか一方**で、
+      // モデルが載った地点（`s.modelForm`）は型の群が、載らなかった地点は手続きの群が受け持つ。
+      // 城以外の kind は両辺とも null になり、G-284 より前とまったく同じ判定に戻る。
+      const wantForm = g.kind === 'castle' ? (s.modelForm || null) : null;
+      const mine = s.viewKind === g.kind && (g.form || null) === wantForm;
       // `s.relief` は密集で譲った倍率（G-11）。**0 にはならない**——譲るのは大きさだけで、
       // 消すことは無い（江戸の近畿に城が密集しているのは史実の情報で、間引いたら嘘になる）。
-      const sc = (s.viewKind === g.kind && !hide)
-        ? s.mscale * back * markerGrow(s.alive, s.relief) : 0;
+      const sc = (mine && !hide) ? s.mscale * back * markerGrow(s.alive, s.relief) : 0;
       tmpQ.identity();
       tmpP.set(s.pos.x, MARKER_Y, s.pos.z);
       tmpSc.set(sc, sc, sc);
@@ -1849,6 +2144,13 @@ function buildLabels() {
   for (const s of SITES) {
     const el = document.createElement('div');
     el.className = 'lbl';
+    // G-256: 重要度 tier を**属性**で載せる（CSS 側 `.lbl[data-tier="1"|"3"]` の当て先）。
+    // tier は地点固有の静的値（時代が変わっても動かない）なので、ここで1回だけで足りる。
+    // **`el.className` に足さないこと**——`updateLabels()` が毎フレーム
+    // `el.className = 'lbl' + (…)` で丸ごと再代入しており、className に足すと毎フレーム消える。
+    // `dataset` は別の属性なので影響を受けない。既定 2 は `TIER_S` / `LBL_TIER` の
+    // フォールバックと同じ側に倒してある（3箇所で別の既定を持たない）。
+    el.dataset.tier = String(s.tier == null ? 2 : s.tier);
     el.textContent = shortName(s);
     el.style.display = 'none';
     el.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
@@ -1858,6 +2160,29 @@ function buildLabels() {
   }
 }
 
+/**
+ * G-256: 当たり判定（衝突回避 `layoutLabels` 用の推定箱）の tier 別の表。
+ * **`.lbl[data-tier=…]` の CSS 実測値と1対1で対応する**——CSS 側の padding/font-size を
+ * 変えたら、この表も**同時に**変えること。ここがズレると
+ * 「見た目は変わったのに重なり判定は変わらない」齟齬が起きる（§6-1）。
+ *   chW_ja / chW_en … 1文字あたりの推定幅（ja は全角の字幅、en は**平均**字幅）
+ *   padLR          … 横paddingの合計（CSS の左右 padding と一致させる）
+ *   h              … 箱の高さ（CSS の 上padding + font-size(line-height:1) + 下padding）
+ * tier2 は現状式の据え置き（**無変更**）。この表は `build/measure-labeltier.mjs` が
+ * 実描画と突き合わせる（V-I）ので、片方だけ直せば検査が赤くなる。
+ */
+const LBL_TIER = {
+  // chW_ja 13.52 は **§6-4 V-I の「tier1/tier3は新規なので実測が必要」に従って測った値**で、
+  // ハヤの表の 13 から +0.52 だけ動かしてある（唯一の逸脱・G-256 報告済み）。理由:
+  // `.lbl` は `letter-spacing:.04em` を持つので、全角1文字の実送りは font-size ではなく
+  // **font-size × 1.04**（13 → 13.52。実測 105.125px / 6文字）。13 のままだと 6文字で
+  // 推定 102px・実測 105.125px の **3.125px** となり、V-I の許容 ±3px を 0.125px 超える。
+  // 40標本すべてで名札枚数・融合数はどちらの値でも同一（G256-LABEL-TIER-20260829）
+  // ＝当たり判定の精度だけが上がり、間引きは1件も増えない。
+  1: { chW_ja: 13.52, chW_en: 7.2, padLR: 24, h: 26 },
+  2: { chW_ja: 12,   chW_en: 6.6, padLR: 20, h: 22 },  // 現状式のまま・無変更（§6-4 が据え置きを明示）
+  3: { chW_ja: 10.5, chW_en: 5.8, padLR: 16, h: 18 },  // 実測17.5pxを安全側に丸め。6文字で2.53px＝許容内なので表のまま
+};
 const labelItems = [];
 /** 譲り合い（G-11）の材料。**フルサイズ**の画面箱と足元をここに集める。 */
 const reliefItems = [];
@@ -1886,7 +2211,7 @@ function updateRelief(w, h, dist, folded) {
     s.fx = (tmpV2.x * 0.5 + 0.5) * w;
     s.fy = (-tmpV2.y * 0.5 + 0.5) * h;
     s.prio = labelPriority({
-      tier: s.tier, alive: s.alive, depth: s.fdepth,
+      tier: s.tier, alive: s.alive, depth: s.fdepth, seat: s.seat,
       selected: state.selected === s.id, hovered: state.hovered === s.id,
     });
     const standing = s.alive > 0.005 && !(folded && isInsetSite(s));
@@ -1976,7 +2301,7 @@ function updateLabels(w, h) {
     // **出さないものは配置計算に入れない。** 入れると「その時代にいない地点」が
     // 衝突判定に勝って、生きている地点の名前を消す（表示条件と配置条件がズレていた）。
     if (!(s.alive > LABEL_ALIVE_MIN || sel || hov)) continue;
-    // 選択中 > ホバー > **tier** > その時代に存在 > 手前 の順で優先。
+    // 選択中 > ホバー > **tier** > その時代の中央政庁 > その時代に存在 > 手前 の順で優先。
     // tier が入っていなかったのが「100件にすると本物の城の名前が11→8件に減る」の正体。
     // 値そのものは `updateRelief` が足元の depth で解いた1本を読む（G-11）。
     const priority = s.prio;
@@ -1984,10 +2309,13 @@ function updateLabels(w, h) {
     // DOM 側は translate(-50%,-100%) で「点の 24px 上」に吹き出しの下端が来る。
     // ラベル箱の中心はさらに高さの半分ぶん上。ここを合わせないと
     // 重なり判定が実際の見た目と 20px ほどずれる。
+    // **旧実装の `-11` は `h/2` の決め打ちだった**（22/2）。tier で h が変わる以上、
+    // 固定値のまま残すと tier1 の箱が 2px 下・tier3 の箱が 2px 上へずれるので `h/2` に一般化した。
+    const T = LBL_TIER[s.tier] || LBL_TIER[2];
     labelItems.push({
-      id: s.id, x: s.sx, y: s.sy - 24 - 11,
-      w: state.lang === 'ja' ? chars * 12 + 20 : chars * 6.6 + 20,
-      h: 22, priority,
+      id: s.id, x: s.sx, y: s.sy - 24 - T.h / 2,
+      w: state.lang === 'ja' ? chars * T.chW_ja + T.padLR : chars * T.chW_en + T.padLR,
+      h: T.h, priority,
     });
   }
   const keep = layoutLabels(labelItems, { padding: 3, limit: budget });
@@ -2105,6 +2433,10 @@ function setEra(i, silent = false) {
   let shapeChanged = false;
   for (const s of SITES) {
     s.aliveTarget = siteInEra(s, era.id) ? 1 : 0;
+    // その時代の中央政庁・王城だったか（G-265）。`aliveTarget` と**同じ場所で**解く
+    // ——時代が変われば両方が変わる値なので、別のタイミングで更新すると
+    // 「1フレームだけ前の時代の政庁で名札を裁定する」が起きる。
+    s.seat = Array.isArray(s.eras_seat) && s.eras_seat.includes(era.id);
     if (applyEraShape(s, era.id)) shapeChanged = true;
   }
   if (shapeChanged) markersDirty = true;

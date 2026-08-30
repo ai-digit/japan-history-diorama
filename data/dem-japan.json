@@ -10,7 +10,7 @@
   "tile_url": "https://cyberjapandata.gsi.go.jp/xyz/dem/7/{x}/{y}.txt",
   "zoom": 7,
   "tiles": 99,
-  "generated_by": "tools/bake-dem.mjs",
+  "generated_by": "bake-dem.mjs",
   "generated": "2026-08-28",
   "width": 1024,
   "height": 1024,

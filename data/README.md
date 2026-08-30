@@ -44,7 +44,7 @@
 
 <!-- BY-FIELDS:BEGIN -->
 `id` `ja` `en` `kana` `label_ja` `label_en` `lat` `lon` `pref_code` `kind` `tier`
-`built` `built_basis` `keep_built` `ended` `site_since` `event_year` `era` `eras` `eras_exclude` `from` `to`
+`built` `built_basis` `keep_built` `ended` `site_since` `event_year` `era` `eras` `eras_exclude` `eras_seat` `from` `to`
 `years_ja` `years_en` `status` `added` `designated_name` `designated` `first_designated`
 `category` `criteria` `notice_no` `first_notice_no` `authority` `name` `location` `point`
 `role` `url` `retrieved` `link_policy` `image` `rights` `sources` `timeline` `meta`
@@ -53,6 +53,16 @@
 
 `built_basis` は `"our-anchor"` の1語しか取らない**印**である（当社が置いた起点であることを
 画面の年代行に注記させる）。散文は隣の `built_basis_note` に分けてあり、そちらは ND 側に置いた。
+
+`eras_seat`（その時代に中央政庁・王城として機能していた時代id）は `eras_exclude` と同じく
+**時代idの配列**であり、散文ではない。幕府の所在地が江戸であるといった事柄は史実そのもので、
+当社が書いたのはその**選び方**（どの粒度を「中央」と呼ぶか）だけなので、`tier` と同じ扱いで BY に置く。
+
+この線引きの基準は「当社の判断が入っているか」ではない——`tier`（重要度の格付け）も当社の編集判断
+そのものだが BY にある。基準は**フィールドの中身が散文か、閉じた語彙のトークン配列かのみ**で引く。
+`eras_seat` はトークン配列である以上この基準に合致し、ND に落とす論点は無い。ただし将来、
+この判断の理由（例: 首里城が江戸期も政庁扱いである根拠）を説明する散文の注記フィールドを追加する
+場合は、`eras_note` / `built_basis_note` と同じく ND 側に置くこと。
 
 座標・年代・指定区分・告示日・出典配列といった**事実そのものに著作権は及ばない**。
 収録対象の選択と体系にデータベース著作物性がありうるので、BY を掛けて帰属だけを求める。
