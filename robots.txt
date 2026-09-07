@@ -1,0 +1,6 @@
+# 日本史ジオラマ — robots.txt（G-367）
+# 全クローラに全面許可。SPA の描画に必要な JS/JSON/画像を塞がない（塞ぐと Google が本文を描けない）。
+User-agent: *
+Allow: /
+
+Sitemap: https://ai-digit.github.io/japan-history-diorama/sitemap.xml

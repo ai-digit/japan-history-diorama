@@ -18,7 +18,7 @@ elevation tiles. The page makes no external requests at all.
 人間ではありません。人間による監修は入っていません。支出・方針の承認は人間のオーナーが行います。
 
 This screen is operated and answered by AI. The texts, code and map composition of Japan History
-Diorama were produced by the AI agents of DIGIT Inc. Not by a human. No human editorial review was
+Diorama were produced by the AI agents of DIGIT. Not by a human. No human editorial review was
 applied. Spending and policy decisions are approved by the human owner.
 
 ## 配信とアクセスログについて / Hosting and access logs
@@ -98,6 +98,6 @@ very welcome — fixing it is our job.
 
 ---
 
-株式会社DIGIT / DIGIT Inc.
+株式会社DIGIT / DIGIT
 
 > 補記（2026-08-28）: ライセンスの線引きの**正本は `LICENSE-DATA.md`**——本READMEの表はその要約です。

@@ -9,15 +9,43 @@
 <meta name="application-name" content="日本史ジオラマ">
 <meta name="apple-mobile-web-app-title" content="日本史ジオラマ">
 <meta name="theme-color" content="#fffdf8">
-<!-- OGP相当。画像は外部URLになるため置かない（build/check-html.mjs が外部依存を弾く掟）。
-     内部バージョン表記（prototype / v0）はユーザーの目に触れる面に出さない —— art-direction.md §1。 -->
+<!-- OGP／Twitterカード（G-366）。**画像は在り、絶対URLで指す。**
+     公開先は既に確定して本番稼働している（https://ai-digit.github.io/japan-history-diorama/ ・
+     G-308 で 53ff2f4 をデプロイ・live 全緑検証済み）。og:image と twitter:image は
+     クローラが完全修飾URLを要求するため**絶対URL**で書く——これは content= 属性であり、
+     check-html.mjs の外部URL禁止（src/href だけを見る掟・4章）には触れない。
+     画像の実体（assets/ogp.jpg）が出荷物に必ず載ることは、下の
+     <link rel="image_src" href="./assets/ogp.jpg">（**相対**）が担保する——assetRefs の実在検査に
+     掛かるので、manifest への入れ忘れは check-html を赤にする（＝リハーサル偽緑を防ぐ fail-closed）。
+     画像は本番スクショそのもので、上端の AI 開示バナーが画面内に写る＝カード自身が開示を連れて回る。
+     内部バージョン表記（prototype / v0）はユーザーの目に触れる面に出さない —— art-direction.md §1。
+     ※ canonical/hreflang は今も相対（./）で、実URLへの差し替えは公開当日の別レーン案件（本レーン範囲外）。 -->
 <meta property="og:type" content="website">
 <meta property="og:locale" id="og-locale" content="ja_JP">
 <meta property="og:locale:alternate" id="og-locale-alt" content="en_US">
 <meta property="og:site_name" content="日本史ジオラマ">
 <meta property="og:title" content="日本史ジオラマ — Japan History Diorama">
 <meta property="og:description" content="日本列島の立体ジオラマの上に城と史跡を並べ、時代スライダーで歴史をたどる。">
-<meta name="twitter:card" content="summary">
+<meta property="og:url" content="https://ai-digit.github.io/japan-history-diorama/">
+<meta property="og:image" content="https://ai-digit.github.io/japan-history-diorama/assets/ogp.jpg">
+<meta property="og:image:secure_url" content="https://ai-digit.github.io/japan-history-diorama/assets/ogp.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1000">
+<meta property="og:image:height" content="525">
+<meta property="og:image:alt" content="日本列島の立体ジオラマに城と史跡が並び、下に時代スライダーが見える画面">
+<link rel="image_src" href="./assets/ogp.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="日本史ジオラマ — Japan History Diorama">
+<meta name="twitter:description" content="日本列島の立体ジオラマの上に城と史跡を並べ、時代スライダーで歴史をたどる。">
+<meta name="twitter:image" content="https://ai-digit.github.io/japan-history-diorama/assets/ogp.jpg">
+<meta name="twitter:image:alt" content="日本列島の立体ジオラマに城と史跡が並ぶ画面">
+<!-- 次のアンカー行は変更しない。tests/lang.test.mjs（外部URL禁止の負例）が固定文字列を
+     注入アンカーに使い、直後へ外部 <script src=https> を差し込んで check-html が赤くなることを
+     確かめる。その試験ファイルは本レーンの宣言パス外なので触れない。実効の Twitter カードは
+     上の summary_large_image（クローラは先頭の twitter:card を採る）。アンカーはコメント内なので
+     二重メタにならず、検査対象（外部 script 拒否）を1バイトも弱めない（urlAttr は生テキストを
+     走査するのでコメント内の script も赤く出る）。アンカー↓
+     <meta name="twitter:card" content="summary"> -->
 <!-- 英語面にURLを与える（RINGI-0007 T-8・イシ条件2）。
      `?lang=en` で英語で起動し、`<html lang>`・canonical・og:locale がその言語に揃う。
      **href は相対にしてある。** 公開先のホスト名は当社の GitHub アカウント作成後にしか
@@ -260,19 +288,13 @@
 
   /* -------------------------------------------------------------- サイドカード */
   #card{
-    /* 高さは**下の時代バーが要求する高さ**（`--sheet-b` = #erabar の実測高 + 8px）から決める。
-       定数で引くのをやめた理由（G-190）: `calc(100vh - 250px)` は 1280x720 で
-       カード下端 546px・時代バーの板の上端 418px となり、右端3つの時代ボタンと
-       スライダー右端がカードの下に入って**押せなかった**。時代バーの高さは
-       時代の要約文の行数や開示行で変わるので、定数では原理的に追随できない。
-       既定値 330px は JS が測る前の安全側（1280x720 の実測 322px より大きい）。 */
+    /* 高さは下の時代バーの**実測高**（`--sheet-b`）から引く。定数（G-190: `calc(100vh - 250px)`）は
+       時代バーの高さが要約文の行数で変わるため追随できず、右端の時代ボタンがカード下に入って
+       押せなかった。既定 330px は JS 測定前の安全側。 */
     --card-top:calc(var(--tools-b, 104px) + 12px);
-    /* `fixed` をやめて `absolute`（台＝#stage が containing block）にしてある。
-       ページがスクロールする文書になったので、`fixed` のままだと**カードだけが
-       画面に貼り付いたまま残り、折り返しの下の出典に覆いかぶさる**
-       ——G-202 条件2「読めなくするのは禁止」に真正面からぶつかる。
-       台の中に置けば、カードは地図と一緒に上へ流れて出典に触らない。
-       起点が台の左上に変わるだけで、スクロール0のときの座標は fixed と同じである。 */
+    /* `fixed` をやめ `absolute`（台＝#stage 基準）。文書スクロール化で fixed だとカードが画面に
+       貼り付き、折り返し下の出典を覆う（G-202 条件2「読めなくするの禁止」）。台の中なら地図と
+       一緒に流れて出典に触らず、スクロール0での座標は fixed と同じ。 */
     position:absolute; z-index:30; right:16px; top:var(--card-top); width:330px;
     max-height:calc(var(--stage-h) - var(--card-top) - var(--sheet-b, 330px));
     background:var(--paper);
@@ -282,10 +304,8 @@
     transition:transform .28s cubic-bezier(.2,.8,.3,1), opacity .22s ease;
   }
   #card.open{ transform:none; opacity:1; pointer-events:auto; }
-  /* 上端も定数をやめた（G-190 の同型）。`top:76px` は AI開示バナーが2行になる幅
-     （1280x720 実測でバナー下端 56.6px・道具の下端 100.6px）で「全景へ戻る」と「EN」を
-     **カードが 24.6px ぶん覆っていた**——言語切替が押せない画面になっていた。
-     カードは上も下も、**実測した器（`--tools-b` / `--sheet-b`）のあいだにだけ置く**。 */
+  /* 上端も定数をやめた（G-190 同型）。`top:76px` 定数はバナー2行時に言語切替をカードが覆って
+     押せなかった。カードは上も下も**実測した器（`--tools-b`／`--sheet-b`）のあいだにだけ置く**。 */
   #card-head{ padding:16px 18px 12px; border-bottom:1px solid var(--line); position:relative; }
   #card-kind{ font-size:10px; letter-spacing:.18em; color:var(--accent); font-weight:700; text-transform:uppercase; }
   /* 史跡の固有名は明朝（§3-3 の4面のうちの1つ）。史書を開いた品格はここで出す。 */
@@ -344,6 +364,16 @@
   .src-item .src-name{ color:var(--ink-soft); font-weight:700; text-decoration:none; }
   .src-meta{ color:var(--ink-faint); }
   .src-note{ margin-top:5px; color:var(--ink-faint); }
+
+  /* このビューのリンクをコピー（G-429／deep-link=G-428 の上に乗る導線）。ボタンは短冊 .pill を流用
+     （新意匠を足さない）。status/share-url は成否のときだけ出る（既定は空・hidden）ので、カードの外形
+     （幅330・max-height）は1pxも変えない＝check-layout の矩形交差に触れない。 */
+  #card-share{ margin-top:11px; padding-top:11px; border-top:1px dashed var(--line); }
+  #share-status{ margin:8px 0 0; font-size:11px; line-height:1.6; color:var(--accent-deep); }
+  #share-status:empty{ margin:0; }
+  #share-status[data-state="manual"]{ color:var(--ink-soft); }
+  #share-url{ width:100%; margin-top:8px; font-family:inherit; font-size:11px; color:var(--ink); background:var(--paper); border:1px solid var(--line); border-radius:var(--r-s); padding:7px 9px; }
+  #share-url[hidden]{ display:none; }
 
   /* ---------------------------------------------------------------- 時代バー */
   #erabar{
@@ -423,12 +453,10 @@
   .sitechip:hover{ border-color:rgba(200,84,58,.45); color:var(--ink); }
   .sitechip.on{ background:var(--accent); border-color:var(--accent); color:var(--paper); }
   #sitechips .empty{ font-size:11.5px; color:var(--ink-faint); padding:5px 2px; }
-  /* H-2（art-direction.md §5-4）。最小寸法でカードを開いている間だけ出る「戻す」行。
-     H-1 は時代バーの可変2つ（要約文・近道）を退避させるが、**黙って消すと
-     「畳んで隠した」に見える**——AI開示に掛けている構え（畳まない・隠さない）は
-     条文の対象外である自社の文にも当てる。だから (1) 何が退避したかを名指しし
-     (2) 戻し方（＝カードを閉じる）を同じ1行に置く。既定は display:none で、
-     出るのは `@media (max-width:360px)` かつ `#card.open` の時だけ。 */
+  /* H-2（art-direction.md §5-4）。最小寸法でカードを開いている間だけ出る「戻す」行。H-1 が時代バーの
+     可変2つを退避させるが**黙って消すと「畳んで隠した」に見える**（畳まない・隠さないの構えを自社の文
+     にも当てる）ので、(1) 何が退避したかを名指しし (2) 戻し方（カードを閉じる）を同じ行に置く。
+     既定 display:none、出るのは `@media (max-width:360px)` かつ `#card.open` の時だけ。 */
   #era-restore{
     display:none; width:100%; margin-top:9px; padding:0;
     border:none; background:none; font-family:inherit;
@@ -546,19 +574,10 @@
     #ai-banner-text, #ai-banner-text-en{ font-size:11px; line-height:1.6; }
     #card{
       right:10px; left:10px; width:auto; top:auto; bottom:calc(var(--sheet-b, 210px) + var(--safe-b));
-      /* 38vh は「読みやすい高さ」の上限であって、**空いている高さの保証ではない**。
-         狭い画面では時代バーが高くなり、38vh のカードは上の AI開示バナーへ食い込む
-         （実測 320x640 で上端 -32px＝画面の外・開示を覆う）。開示は隠せない
-         （REG-007 第4条第3項）ので、上の器（`--tools-b`）で必ず頭打ちにする。 */
-      /* 上限は `--tools-b`（#tools の下端）ではなく **`--topbar-b`（上の段まるごとの下端）**。
-         狭い画面では題箋（#brand）の方が道具より背が高く、#tools だけを見ていると
-         **カードが製品名を覆う**——実測 320x640 で題箋を 23px・製品名の2行目を 11px、
-         390x844 でも題箋を 6px 覆っていた（G-195）。H-3 で製品名を1行にすれば今日の
-         11px は消えるが、消えるのは今日の文字列に対してだけである。上の器を
-         取り違えている限り、名前が伸びた日・字が大きくなった日に必ず戻ってくる。 */
-      /* 引く相手は画面（100vh）ではなく**台の高さ**（`--stage-h`）である。
-         画面から引くと、台が見切れのぶん低いぶんだけカードが上へ伸び、
-         上の器（AI開示・題箋）を `--peek` px 食う。 */
+      /* 38vh は上限であって空き高さの保証ではない——狭い画面で時代バーが高くなると AI開示へ食い込む
+         ので、上の器で頭打ちにする。上限は `--tools-b` ではなく **`--topbar-b`（上段まるごとの下端）**:
+         狭幅では題箋（#brand）が道具より背が高く、#tools だけ見るとカードが製品名を覆う（G-195）。
+         引く相手は 100vh ではなく**台の高さ `--stage-h`**（画面から引くと見切れのぶん上の器を食う）。 */
       max-height:min(38vh, calc(var(--stage-h) - var(--topbar-b, 116px) - var(--sheet-b, 210px)
                                 - var(--safe-b) - 10px));
       transform:translateY(16px);
@@ -566,18 +585,11 @@
     #card.open{ transform:none; }
     #erabar{ padding:10px 10px calc(8px + var(--safe-b)); }
     #erabar-inner{ padding:11px 14px 12px; border-radius:var(--r); }
-    /* G-257: 行数は固定しない。直す前の `max-height:3.4em; overflow:hidden` は、
-       **語の途中で文を切ったうえに、切れている印を1つも出さない**指定だった——
-       実測（`build/measure-erasum.mjs`・2026-08-29）で 320x640 は日英とも**全11時代**が
-       切れており、いちばん壊れて見えるのは英語の室町で **188字のうち96字が消え、
-       文がカンマで終わっているように読めた**（ja 江戸は「独自の成熟が進」で終わっていた）。
-       開示は1文字も削らないと決めておきながら（§5-2）、自社の説明文だけを黙って削るのは
-       筋が通らない。
-       **今日の実文は日英とも4行に収まる**（実測: ja 最大3行 / en 最大4行・320/390/768 の
-       全時代）。だから上限は「今日の文を削る値」ではなく**帯を守るための歯止め**として
-       4行に置き、溢れた分には `-webkit-line-clamp` が必ず「…」を出す。
-       上限に当たった日は `check-layout.mjs` の SC-7 が「1文字も隠れていない」を破って
-       赤で教える——**黙って消えることはもう起きない**。 */
+    /* G-257: 行数は固定しない。直す前の `max-height:3.4em; overflow:hidden` は語の途中で文を切り、
+       切れた印も出さなかった（実測で 320x640 は全11時代が切れ、英語の室町は 188字中96字が消えた）。
+       開示は1文字も削らないと決めた自社説明文を黙って削るのは筋が通らない。実文は日英とも4行に収まる
+       ので、上限は「今日の文を削る値」でなく**帯を守る歯止め**として4行に置き、溢れたら `line-clamp` が
+       必ず「…」を出す。上限に当たった日は `check-layout.mjs` の SC-7 が赤で教える（黙って消えない）。 */
     #era-sum{
       font-size:11.5px; min-height:0;
       display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:4; overflow:hidden;
@@ -640,28 +652,14 @@
     #card.open ~ #erabar #era-restore{ display:block; }
   }
 
-  /* G-278: 「主役をひとつに」を**全幅**へ。§5-4 H-1（上の 360px ブロック）は、カードを
-     開いているあいだ時代バーの可変2つ（要約文・近道）を**退避**（display:none）させて
-     主役をカードへ一本化する処置だが、これは高さ640の縦予算を空けるための策で
-     `@media (max-width:360px)` に閉じていた。**主役を1つにする効き目は全幅で要る**のに、
-     広幅ではその効き目が一切無く、デスクトップ 1280x720 では時代バーの板が
-     カードの **1.81倍の面積で同じ明るさ**のまま並んでいた（実測・G-278 の真因＝二枚看板）。
-     広幅は縦予算があるので退避で器を消すのはかえって唐突——器は残す。二枚看板の正体は
-     **カードと同じ額縁**（金罫＋影＝`box-shadow` の2枚重ね）を持つ「第二の板」なので、
-     カードを開いているあいだは**その額縁を外す**（`box-shadow:none`）。額縁を外すと、板は
-     「浮いた第二のカード」ではなく**地に着いた下部バー**に降格し、満額の額縁を保つカードだけが
-     主役として残る（＝主役解消の本体はこちら）。あわせて **opacity を .9 へわずかに落とす**——
-     選んでいない側は「同じ強さで主張し続けない・静かに退く」作法（寄り時の名札
-     `body[data-zoom="1"] .lbl:not(.on)` と同型・art-direction）だが、**.9 より下げない**のは
-     要約文（--ink-soft）が素で 6.1:1 とコントラストの床に近く、要約行の背後は下部の海・霞で
-     明色（実測 rgb(227,231,226)）なので、**opacity を下げるほど AA(4.5:1) を割る**ため
-     ——実測で .8→3.98:1／.85→4.41:1／**.9→4.91:1（AA可）**。だから減光は AA を守る .9 に留め、
-     主役を1つにする仕事は「額縁を外す」側に担わせる（閉じれば両方向で戻る）。
-     **狭幅は退避のまま／広幅は額縁を外して薄く減光**の出し分けは寸法別の縦予算で決めた
-     （実測: 320x640 は縦640で逼迫＝退避が要る／390・768・1280 は縦予算があり額縁除去＋薄減光で
-     足りる）。器の高さは変えないので G-215 の折り返しにも G-257 の要約 clamp にも触れない。
-     境界は狭幅（max-width:360px）の**厳密な補集合** `not all and (max-width:360px)`——360〜361px の
-     小数幅にも穴が空かない（G-278 Codex 所見）。板は残り操作もできる（pointer は生きている）。 */
+  /* G-278: 「主役をひとつに」を全幅へ。§5-4 H-1（狭幅）は時代バーの可変2つを退避させ主役をカードへ
+     一本化するが、`max-width:360px` に閉じていた。広幅では効かず、時代バーの板がカードと同じ面積・
+     同じ明るさで並ぶ「二枚看板」だった。広幅は縦予算があるので器は消さず、板の**額縁（金罫＋影）を
+     外す**（`box-shadow:none`）——板は「第二のカード」から「地に着いた下部バー」に降格し、満額の額縁を
+     保つカードだけが主役になる。あわせて **opacity を .9 へ薄く落とす**（静かに退く作法）が、**.9 より
+     下げない**——要約文が素で 6.1:1 とコントラストの床に近く、背後が明色なので下げるほど AA(4.5:1) を
+     割る（実測 .85→4.41:1／.9→4.91:1）。器の高さは変えず G-215/G-257 に触れない。境界は狭幅の**厳密な
+     補集合** `not all and (max-width:360px)`（360〜361px の小数幅も塞ぐ・Codex 所見）。板は操作可のまま。 */
   @media not all and (max-width: 360px){
     #card.open ~ #erabar #erabar-inner{ opacity:.9; box-shadow:none; }
   }
@@ -687,7 +685,7 @@
     <span id="ai-banner-mark" lang="ja">AI開示</span>
     <p id="ai-banner-text" lang="ja">この画面はAIが運営・応対しています。日本史ジオラマの解説文・実装・地図の構成は、株式会社DIGITのAIエージェントが作成しました。人間ではありません。人間による監修は入っていません。支出・方針の承認は人間のオーナーが行います。</p>
     <span id="ai-banner-mark-en" lang="en">AI DISCLOSURE</span>
-    <p id="ai-banner-text-en" lang="en">This screen is operated and answered by AI. The texts, code and map composition of Japan History Diorama were produced by the AI agents of DIGIT Inc. Not by a human. No human editorial review was applied. Spending and policy decisions are approved by the human owner.</p>
+    <p id="ai-banner-text-en" lang="en">This screen is operated and answered by AI. The texts, code and map composition of Japan History Diorama were produced by the AI agents of DIGIT. Not by a human. No human editorial review was applied. Spending and policy decisions are approved by the human owner.</p>
   </div>
   <div id="topbar-row">
     <div id="brand">
@@ -714,6 +712,13 @@
       <div id="card-kind"></div>
       <h2 id="card-title"></h2>
       <div id="card-sub"></div>
+      <!-- G-429（改善C）: 「このビューのリンクをコピー」。deep-link（G-428）の上に乗る最小UI。
+           clipboard 不可でも #share-url の欄へ倒して白画面にしない。文言は applyLang() が入れる。 -->
+      <div id="card-share">
+        <button class="pill" id="sharebtn" type="button" aria-label="このビューのリンクをコピー"></button>
+        <p id="share-status" role="status" aria-live="polite"></p>
+        <input id="share-url" type="text" readonly hidden value="" aria-label="このビューのリンク">
+      </div>
     </div>
     <div id="card-body">
       <p id="card-desc"></p>
@@ -910,9 +915,13 @@ const prefersReduced = window.matchMedia
 
 /* ------------------------------------------------------------------ 状態 */
 
+// 既定の時代＝江戸（城がいちばん多く立っている時代）。deep-link のURLでは
+// この既定を落とす（`?lang=ja` を落として `./` に畳むのと同じ作法・G-428）。
+const DEFAULT_ERA_INDEX = 9;
+
 const state = {
   lang: 'ja',
-  eraIndex: 9,          // 既定は「江戸」（城がいちばん多く立っている時代）
+  eraIndex: DEFAULT_ERA_INDEX,  // 既定は「江戸」（城がいちばん多く立っている時代）
   playing: false,
   playT: 0,
   selected: null,       // site id
@@ -927,17 +936,11 @@ let DEM = null;
 
 /* ------------------------------------------------------- 言語をURLで固定する */
 /*
- * RINGI-0007 T-8・イシ条件2。**英語面がURLを持たない**のが起案時の姿だった——
- * `toggleLang()` はランタイムの状態を変えるだけなので、英語面は共有もブックマークも
- * 検索もできず、`popular/paths` にも1件も現れない（＝測れない）。
- *
- * ここが持つのは4つだけ:
- *   (a) URL の `?lang=` を読んで**起動時の言語を決める**（描画より先）
- *   (b) `<html lang>` を実際に切り替える（読み上げ・翻訳・検索の言語判定はこれを見る）
- *   (c) canonical を**自己参照**にする（ja→`./` ／ en→`./?lang=en`）
- *   (d) og:locale を連動させる
- * 切替は `history.replaceState` で、**再読み込みはしない**（three.js のシーンを作り直す
- * 理由が無い。1〜2秒の再構築を言語切替のたびに払わせない）。
+ * RINGI-0007 T-8・イシ条件2。起案時は英語面がURLを持たず（toggleLang は状態を変えるだけ）、
+ * 共有もブックマークも検索もできなかった。ここが持つのは4つ: (a) `?lang=` を読んで起動時の言語を
+ * 決める（描画より先）(b) `<html lang>` を切り替える（読み上げ・翻訳・検索の言語判定）
+ * (c) canonical を自己参照に（ja→`./`／en→`./?lang=en`）(d) og:locale を連動。切替は
+ * `history.replaceState` で**再読み込みしない**（three.js のシーンを言語切替のたびに作り直さない）。
  */
 const CANONICAL_HREF = { ja: './', en: './?lang=en' };
 const OG_LOCALE = { ja: 'ja_JP', en: 'en_US' };
@@ -986,6 +989,142 @@ function syncLangUrl() {
   if (state.lang === 'ja') u.searchParams.delete('lang');
   else u.searchParams.set('lang', 'en');
   history.replaceState(null, '', u.pathname + u.search + u.hash);
+}
+
+/* --------------------------------------------- 時代・地点をURLで指す（deep-link） */
+/*
+ * G-428・ハヤ改善B（共有性の最大レバレッジ）。起案時は `?lang=` と QA用の `?era=`（数値index）
+ * だけで `?site=` が無く、面白い状態（厳島神社・平安期）を人に送れなかった。ここが持つのは3つ:
+ *   (a) `?era=` を読む（**数値index＝QA互換 と 時代id文字列**の両方）
+ *   (b) `?site=` を読む（実在する地点idだけ・知らない値/空は null＝既定へ倒す）
+ *   (c) いまの時代・地点を `?era=<id>`・`?site=<id>` へ書き戻す（許可リスト lang/era/site だけ）
+ *
+ * **zero-external 不変条件**: URL 文字列をいじるだけ。外部へ1バイトも出さず History API だけを使う。
+ * **replaceState を選ぶ**（pushState は再生・スライダーで履歴を汚し「戻る」を壊す）——ゆえに
+ * 「戻るで前のビューへ辿れる」効能は名乗らない。**Codex 敵対レビューで塞いだ穴**: 読取は復号して
+ * から完全一致（`himeji/../etc`・`%00` を化けさせない）・異常長は弾く／書込は許可リストだけ積み
+ * `?token=…` 等を共有URLへ連れ回さない（PII 露出を断つ・lang は温存）／replaceState は try/catch で
+ * 表示を壊さない／起動時の復元が終わるまで（`urlSyncReady`）書込を止め `?site=` を潰さない。
+ * 詳しい根拠と回帰は tests/deeplink.test.mjs。G-429 の共有導線（copyViewLink）はこの符号化を再利用する。
+ */
+
+const VIEW_PARAM_MAX = 64;   // 正当な id は十分短い。異常に長い値は読まない（誤爆・DoS的入力を弾く）
+let urlSyncReady = false;    // 起動時の復元が終わるまで URL 書込を止める（?site= の取りこぼし防止）
+
+/** search 文字列から復号済みの生値を取る（`?` 有無どちらでも）。無ければ null。 */
+function viewParam(search, key) {
+  try {
+    const v = new URLSearchParams((search || '').replace(/^\?/, '')).get(key);
+    return (v !== null && v.length <= VIEW_PARAM_MAX) ? v : null;
+  } catch { return null; }
+}
+
+/**
+ * `?era=` を時代indexに解く。**数値index（既存QA）と時代id文字列（heian 等）の両方**を受ける。
+ * 知らない値・範囲外・欠損は null（＝呼び手が既定の時代を保つ。白画面/クラッシュにしない）。
+ * 復号済みの値で**完全一致**照合する（接頭辞や細工した文字列を実在の時代に化けさせない）。
+ * `eraIds` は ERAS 由来の id 配列。
+ */
+function eraIndexFromSearch(search, eraIds) {
+  const raw = viewParam(search, 'era');
+  if (raw === null || raw === '') return null;
+  if (/^\d+$/.test(raw)) {                       // 数値index（QA互換・?era=0 で各時代を撮る）
+    const i = Number(raw);
+    return (i >= 0 && i < eraIds.length) ? i : null;   // 範囲外は null（既定へ倒す）
+  }
+  const i = eraIds.indexOf(raw.toLowerCase());   // 時代id（jomon〜meiji）。汚いURLに備え小文字化
+  return i >= 0 ? i : null;
+}
+
+/**
+ * `?site=` を地点idに解く。**実在する地点idだけ**を返す。知らない値・空は null
+ * （＝地点を選ばない＝既定ビュー。不正URLで白画面/クラッシュにしない）。
+ * 復号済みの値で**完全一致**照合する。`siteIds` は SITES 由来の id 集合（Set）。
+ */
+function siteIdFromSearch(search, siteIds) {
+  const raw = viewParam(search, 'site');
+  if (raw === null || raw === '') return null;
+  return siteIds.has(raw) ? raw : null;
+}
+
+/**
+ * いまの時代・地点をURLへ書き戻す（**再読み込みなし・履歴を積まない**）。
+ * **lang/era/site の許可リストだけ**を積む（未知パラメータは共有URLへ連れ回さない）。
+ * era は**時代id**で書く（index は並びが変われば壊れる・id は自己記述的で共有に強い）。
+ * 既定の時代（江戸）と地点なしは既定なので落とす（`?lang=ja` を落として `./` に畳むのと同じ作法）。
+ */
+function syncViewUrl() {
+  if (!urlSyncReady) return;                     // 起動時の復元が終わるまで書かない
+  if (typeof location === 'undefined' || !window.history || !history.replaceState) return;
+  // 許可リスト: lang/era/site **だけ**を積む（未知パラメータを共有URLへ連れ回さない）。
+  // lang は現URLの生値でなく **state.lang** から起こす——URLの汚い lang 値（?lang=%65n / fr /
+  // ja-JP 等）を温存して表示と食い違わせない。en だけ lang=en、ja（既定）は落とす（syncLangUrl と同じ作法）。
+  const u = new URL(location.href);
+  const params = new URLSearchParams();
+  if (state.lang === 'en') params.set('lang', 'en');
+  const era = ERAS && ERAS[state.eraIndex];
+  if (era && state.eraIndex !== DEFAULT_ERA_INDEX) params.set('era', era.id);
+  if (state.selected) params.set('site', state.selected);
+  const qs = params.toString();
+  const next = u.pathname + (qs ? '?' + qs : '') + u.hash;
+  // **replaceState だけ**を保護する（頻度制限・巨大URLの SecurityError 等で表示を壊さない）。
+  // URL 構築側のエラーは握り潰さない（バグを「URLが古い」で隠さない）。
+  try { history.replaceState(null, '', next); }
+  catch { /* URL が更新されないだけ。表示状態は不変 */ }
+}
+
+/* ビューのリンクをコピー（G-429・改善C）。deep-link(G-428)の上に乗る導線。**syncViewUrl を再利用**して
+   現URLを確定してから写す＝写るのは許可リスト(lang/era/site)だけ＝PII/内部stateは乗らない。zero-external
+   （clipboard/execCommand/DOMはローカル・外部要求ゼロ）。fail-safe は clipboard→execCommand→手動コピー欄の
+   順で、どこで転んでも白画面にせず成否を可視で返す。根拠と回帰は tests/share.test.mjs。 */
+function viewShareUrl() {   // 写す文字列＝現ビューの deep-link URL。syncViewUrl を再利用して確定。
+  syncViewUrl();
+  try {
+    const u = new URL(location.href);
+    u.hash = '';   // 共有リンクにハッシュ（許可リスト外＝内部state/PIIの混入路）を載せない。ビューは lang/era/site だけで決まる（Codex G-429 #3）
+    return u.href;
+  } catch { try { return location.href; } catch { return ''; } }
+}
+function execCopyFallback(text) {   // clipboard 不可時の旧経路。非https/古い版でも効くことがある。投げない。
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed'; ta.style.top = '-1000px'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    let ok = false;
+    try { ok = !!(document.execCommand && document.execCommand('copy')); } catch { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  } catch { return false; }
+}
+/* 入口。押下で現URLを確定→ secure clipboard → execCommand → 手動コピー欄の順に倒し、成否を可視で返す。 */
+async function copyViewLink() {
+  const url = viewShareUrl();     // syncViewUrl を再利用（別実装で二重管理を作らない）
+  const ja = state.lang === 'ja', status = $('share-status'), field = $('share-url');
+  let ok = false;
+  try {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function' && window.isSecureContext) {
+      await navigator.clipboard.writeText(url); ok = true;
+    }
+  } catch { /* 権限拒否・非対応は握り潰して旧経路へ */ }
+  if (!ok) { try { ok = execCopyFallback(url); } catch { ok = false; } }   // 何が起きても白画面にしない
+  if (status) {
+    clearTimeout(copyViewLink._t);
+    if (ok) {
+      status.textContent = ja ? 'このビューのリンクをコピーしました' : 'Copied a link to this view';
+      status.dataset.state = 'ok';
+      if (field) field.hidden = true;
+      copyViewLink._t = setTimeout(() => { status.textContent = ''; status.dataset.state = ''; }, 3000);
+    } else {   // 全経路失敗＝URLを選択済みの欄で見せて手動コピーへ倒す（白画面にしない）
+      status.textContent = ja
+        ? 'コピーできませんでした。下のリンクを選択してコピーしてください。'
+        : 'Could not copy. Select the link below and copy it manually.';
+      status.dataset.state = 'manual';
+      if (field) { field.value = url; field.hidden = false; try { field.focus(); field.select(); } catch { /* 欄は見えている */ } }
+    }
+  }
+  return { ok, url };
 }
 
 /* ------------------------------------------------------------------ 読み込み */
@@ -1123,10 +1262,12 @@ async function main() {
   // **言語の反映は起動時も切替時も同じ経路**（RINGI-0007 T-8・イシ条件2）。
   // `?lang=en` で来た訪問者に日本語の画面を見せない。開示・出典・見出しを一括で揃える。
   applyLang();
-  // QA用: ?era=0 で起動時の時代を指定できる（スクリーンショットで各時代の
-  // マーカーを見比べるため。指定が無ければ既定の江戸）。
-  const eraParam = /[?&]era=(\d+)/.exec((typeof location !== 'undefined' && location.search) || '');
-  if (eraParam) state.eraIndex = clamp(Number(eraParam[1]), 0, ERAS.length - 1);
+  // 起動時のビューをURLから決める（G-428 deep-link）。`?era=` は**数値index（QA既存・
+  // ?era=0 で各時代を撮る）と時代id文字列（?era=heian）の両方**を受ける。不正値・欠損は
+  // 既定の江戸へ倒す（白画面にしない）。`?site=` は下（onResize 後・座標が定まってから）で復元。
+  const search = (typeof location !== 'undefined' && location.search) || '';
+  const eraIdx = eraIndexFromSearch(search, ERA_IDS);
+  if (eraIdx !== null) state.eraIndex = eraIdx;
   setEra(state.eraIndex, true);
   // 起動時は目標値を即時反映して「ぱっと見えている」状態から始める
   for (const s of SITES) s.alive = s.aliveTarget;
@@ -1143,6 +1284,17 @@ async function main() {
   watchChrome();
   console.info('[map] home fit:', VIEW.fitted, 'distance', VIEW.dist.toFixed(1),
                'fill', ((VIEW.fill || 0) * 100).toFixed(0) + '%');
+
+  // `?site=` で来た訪問者を、その地点へ寄せて始める（G-428 deep-link。ここは VIEW が
+  // 収まって座標が定まった後。実在しない地点idは siteIdFromSearch が null に倒すので、
+  // 不正URLでも既定の全景から始まる＝白画面にしない）。
+  const wantSite = siteIdFromSearch(search, new Set(SITES.map((s) => s.id)));
+  if (wantSite) selectSite(wantSite, true);
+
+  // ここまでで state は URL 通りに復元済み。以降は URL を書き戻してよい（?site= の取りこぼし防止）。
+  // 一度だけ正規化する: 数値era→時代id・既定era/地点なしを畳む・許可外パラメータを掃く。
+  urlSyncReady = true;
+  syncViewUrl();
 
   clock = new THREE.Clock();
   renderer.setAnimationLoop(tick);
@@ -1748,6 +1900,191 @@ const shapeRadius = (shape) => shape.reduce((m, pt) => {
   return Math.max(m, Math.hypot(pt.x || 0, pt.z || 0) + half);
 }, 0);
 
+/* ------------------------------------------ 生成シェープ（G-535・codex製） */
+/*
+ * codex（gpt-5.6-sol・G-529審査→G-535採用・D-0075/76）生成の3地点シェープ。原本: qa/g529/gen-*.js、
+ * 修正の全記録: qa/g535/PROVENANCE.md（等価簡潔化・座標/色/構成は同一）。
+ * 寸法は自己申告でなく実測で締める（genShapeBuild→tests/genshapes.test.mjs）。
+ * BEGIN〜ENDは tools/shapes.mjs の評価区間・消さない。
+ */
+/* G535_GEN_BEGIN */
+const gPoly = (P, pts) => {   // 多角形。3体が共用
+  P.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) P.lineTo(pts[i][0], pts[i][1]);
+  P.closePath();
+  return P;
+};
+const gExt = (THREE, s, d) => new THREE.ExtrudeGeometry(s, { depth: d, bevelEnabled: false, curveSegments: 1, steps: 1 });
+
+// 五稜郭（星形要塞）。実測540頂点・4パーツ・高0.199・footR0.490（原本申告700は不正確）
+function buildGoryokakuB(THREE) {
+  const star = (rOut, rIn) => Array.from({ length: 10 }, (_, i) => {
+    const a = Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? rIn : rOut;
+    return [Math.cos(a) * r, Math.sin(a) * r];
+  });
+  const ring = (o1, o2, i1, i2, h) => {   // 星形の環＝濠・土塁
+    const s = gPoly(new THREE.Shape(), star(o1, o2));
+    s.holes.push(gPoly(new THREE.Path(), star(i1, i2).reverse()));
+    const g = gExt(THREE, s, h);
+    g.rotateX(-Math.PI / 2);
+    return g;
+  };
+  const moat = ring(0.49, 0.305, 0.405, 0.247, 0.012);
+  const rampart = ring(0.392, 0.235, 0.275, 0.158, 0.047);
+  rampart.translate(0, 0.012, 0);
+  const tower = new THREE.BoxGeometry(0.092, 0.088, 0.092);   // 奉行所の櫓
+  tower.translate(0, 0.091, 0);
+  const roof = new THREE.ConeGeometry(0.078, 0.064, 4, 1, false);
+  roof.rotateY(Math.PI / 4);
+  roof.translate(0, 0.167, 0);
+  return [{geo:moat,color:0x9dc6da}, {geo:rampart,color:0x93b87f},
+          {geo:tower,color:0xfaf6ec}, {geo:roof,color:0x3c586f}];
+}
+
+// 大仙陵古墳（三段築成＋二重濠）。実測2,838頂点・マージ後3パーツ・高0.093・footR0.446
+// 申告1900は実測3,102で超過→SEG20→18（唯一の形状修正）。oriented補正はExtrude正規化で不要（実測一致）
+function buildDaisenA(THREE) {
+  const SEG = 18;
+  const keyhole = (k) => {   // 前方後円の「鍵穴」輪郭
+    const cz = -0.10 * k, r = 0.16 * k, a = Math.asin((-0.015 * k - cz) / r);
+    const pts = [[Math.cos(a) * r, 0.015 * k], [0.20 * k, -0.22 * k],
+                 [-0.20 * k, -0.22 * k], [-Math.cos(a) * r, 0.015 * k]];
+    for (let i = 1; i <= SEG; i++) {
+      const t = (Math.PI - a) + ((Math.PI + 2 * a) * i) / SEG;
+      pts.push([Math.cos(t) * r, -(cz + Math.sin(t) * r)]);
+    }
+    return pts;
+  };
+  const path = (pts, hole) => gPoly(hole ? new THREE.Path() : new THREE.Shape(), pts);
+  const parts = [];
+  const put = (shape, h, y, color) => {
+    const g = gExt(THREE, shape, h);
+    g.rotateX(-Math.PI / 2);
+    g.translate(0, y, 0);
+    parts.push({ geo: g, color });
+  };
+  const ringK = (kIn, kOut, h, color) => {
+    const s = path(keyhole(kOut), false);
+    s.holes.push(path(keyhole(kIn), true));
+    put(s, h, 0, color);
+  };
+  ringK(0.9,1.055,0.004,0x9dc6da);   // 二重の周濠と堤
+  ringK(1.055,1.155,0.013,0xa6cf8b);
+  ringK(1.155,1.355,0.004,0x9dc6da);
+  ringK(1.355,1.5,0.010,0xa6cf8b);
+  put(path(keyhole(0.885)),0.034,0,0x93b87f);   // 三段築成
+  put(path(keyhole(0.7)),0.031,0.034,0x93b87f);
+  put(path(keyhole(0.525)),0.028,0.065,0x93b87f);
+  return parts;
+}
+
+// 厳島神社（両部大鳥居＋回廊断片）。実測2,376頂点・42→マージ後5パーツ・高0.569・footR0.430
+// 申告1800は不正確。控柱の沈み-0.0026は接地正規化が吸収
+function buildItsukushimaB(THREE) {
+  const V = 0xc4553c, G = 0xd8a13a, RF = 0x3c586f, R2 = 0x4e6d87, TB = 0x8a6b4f;   // V/G/RF/R2/TB
+  const parts = [];
+  const add = (geo, color) => { parts.push({ geo, color }); return geo; };
+  const box = (w, h, d, x, y, z, color, rz = 0) => {
+    const g = new THREE.BoxGeometry(w, h, d);
+    if (rz) g.rotateZ(rz);
+    g.translate(x, y, z);
+    return add(g, color);
+  };
+  const post = (r0, r1, h, x, z, color, seg) => {
+    const g = new THREE.CylinderGeometry(r1, r0, h, seg, 1, false);
+    g.translate(x, h * 0.5, z);
+    return add(g, color);
+  };
+  const strut = (a, b) => {   // 2点間の斜柱（控柱）
+    const d = new THREE.Vector3(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+    const g = new THREE.CylinderGeometry(0.021 * 0.88, 0.021, d.length(), 7, 1, false);
+    g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()));
+    g.translate((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2);
+    return add(g, V);
+  };
+  const prof = (pts, depth, color) => {   // xy輪郭のz押し出し
+    const g = gExt(THREE, gPoly(new THREE.Shape(), pts), depth);
+    g.translate(0, 0, -depth * 0.5);
+    return add(g, color);
+  };
+  for (const x of [-0.185, 0.185]) {
+    post(0.047,0.035,0.455,x,0,V,10);   // 主柱と金輪
+    const g = new THREE.CylinderGeometry(0.044, 0.044, 0.018, 10);
+    g.translate(x, 0.432, 0);
+    add(g, G);
+    strut([x,0.003,-0.142],[x,0.255,-0.072]);   // 控柱と台輪
+    strut([x,0.003,0.142],[x,0.255,0.072]);
+    box(0.092,0.032,0.082,x,0.205,0,V);
+    box(0.074,0.022,0.292,x,0.199,0,V);
+  }
+  box(0.62,0.052,0.052,0,0.385,0,V);   // 貫と楔
+  prof([[-0.255,0.354],[-0.205,0.354],[-0.218,0.405],[-0.245,0.405]], 0.07, G);
+  prof([[0.205,0.354],[0.255,0.354],[0.245,0.405],[0.218,0.405]], 0.07, G);
+  box(0.052,0.105,0.052,0,0.452,0,V);   // 額束と扁額
+  box(0.102,0.065,0.018,0,0.451,-0.036,G);
+  box(0.076,0.041,0.008,0,0.451,-0.047,RF);
+  // 島木と笠木（反り）
+  prof([[-0.355,0.466],[-0.22,0.468],[0,0.462],[0.22,0.468],[0.355,0.466],
+        [0.355,0.510],[0.22,0.505],[0,0.500],[-0.22,0.505],[-0.355,0.510]], 0.085, V);
+  prof([[-0.405,0.520],[-0.315,0.512],[-0.17,0.507],[0,0.505],[0.17,0.507],[0.315,0.512],
+        [0.405,0.520],[0.392,0.565],[0.31,0.548],[0.16,0.541],[0,0.539],[-0.16,0.541],
+        [-0.31,0.548],[-0.392,0.565]], 0.105, RF);
+  box(0.032,0.055,0.112,-0.391,0.537,0,R2,-0.16);   // 木口
+  box(0.032,0.055,0.112,0.391,0.537,0,R2,0.16);
+  box(0.47,0.025,0.105,0,0.055,0.292,TB);   // 社殿回廊断片
+  box(0.49,0.014,0.12,0,0.075,0.292,V);
+  for (const x of [-0.215, -0.072, 0.072, 0.215]) post(0.012, 0.010, 0.135, x, 0.292, V, 6);
+  box(0.49,0.025,0.045,0,0.175,0.292,V);
+  box(0.47,0.018,0.135,0,0.205,0.292,RF);
+  for (const z of [0.238, 0.346]) {   // 高欄
+    box(0.45,0.012,0.014,0,0.122,z,V);
+    for (const x of [-0.21, -0.105, 0, 0.105, 0.21]) box(0.012, 0.07, 0.012, x, 0.105, z, V);
+  }
+  return parts;
+}
+
+/** 台帳。地点idと kind が一致する時だけ姿を上書き（他地点は従来のまま）。 */
+const GEN_SHAPES = {
+  goryokaku: { kind: 'castle_ruin', build: buildGoryokakuB },
+  daisen: { kind: 'tomb', build: buildDaisenA },
+  itsukushima: { kind: 'shrine', build: buildItsukushimaB },
+};
+
+/** 同色を結合（パーツ≤10・facet兼用）→接地y=0→高さとfootR（頂点radial最大）を実測。idごと1回。 */
+const genBuilt = new Map();
+function genShapeBuild(THREE, id) {
+  if (genBuilt.has(id)) return genBuilt.get(id);
+  const byColor = new Map();
+  for (const p of GEN_SHAPES[id].build(THREE)) {
+    const g = p.geo.index ? p.geo.toNonIndexed() : p.geo;
+    (byColor.get(p.color) ?? byColor.set(p.color, []).get(p.color)).push(g);
+  }
+  let minY = Infinity, maxY = -Infinity, footR = 0;
+  const parts = [...byColor].map(([color, geos]) => {
+    const as = geos.map((g) => g.getAttribute('position').array);
+    const pos = new Float32Array(as.reduce((n, a) => n + a.length, 0));
+    let o = 0;
+    for (const a of as) { pos.set(a, o); o += a.length; }
+    for (let i = 0; i < pos.length; i += 3) {
+      footR = Math.max(footR, Math.hypot(pos[i], pos[i + 2]));
+      minY = Math.min(minY, pos[i + 1]); maxY = Math.max(maxY, pos[i + 1]);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    return { geo, color };
+  });
+  for (const p of parts) { p.geo.translate(0, -minY, 0); p.geo.computeVertexNormals(); }
+  genBuilt.set(id, { parts, height: maxY - minY, footR });
+  return genBuilt.get(id);
+}
+/* G535_GEN_END */
+
+/** その地点のその kind が生成シェープなら実体、他は null（＝従来の形）。 */
+const genShapeOf = (s, kind) => {
+  const def = GEN_SHAPES[s.id];
+  return def && def.kind === kind ? genShapeBuild(THREE, s.id) : null;
+};
+
 /** 接地影のテクスチャ（中心が濃い円）。落ち影とは別に、物が地面に「乗っている」感を出す。 */
 function makeContactShadowTexture() {
   const c = document.createElement('canvas');
@@ -1789,7 +2126,10 @@ function prepareSites() {
     s.modelForm = null;
     // 山を避ける半径は「取りうる姿のうち最大」で決める。時代を動かすたびに
     // 山が生えたり消えたりしたら、地形が信用できなくなる。
-    s.footR = Math.max(...s.kinds.map((k) => shapeRadius(SHAPE_OF[k] || SHAPE_KEEP))) * s.mscale;
+    s.footR = Math.max(...s.kinds.map((k) => {
+      const g = genShapeOf(s, k);   // G-535
+      return g ? g.footR : shapeRadius(SHAPE_OF[k] || SHAPE_KEEP);
+    })) * s.mscale;
     applyEraShape(s, ERAS[state.eraIndex].id);
   }
 }
@@ -1801,8 +2141,9 @@ function applyEraShape(s, eraId) {
   const changed = s.viewKind !== k;
   s.viewKind = k;
   s.shape = SHAPE_OF[k] || SHAPE_KEEP;
-  s.topY = shapeHeight(s.shape) * s.mscale;        // ラベルを浮かせる高さ
-  s.viewFootR = shapeRadius(s.shape) * s.mscale;
+  s.topY = shapeHeight(s.shape) * s.mscale;   // 吊り高さは宣言形が正（実高は凍結外の沈み・qa/g535 §7）
+  const gen = genShapeOf(s, k);   // G-535
+  s.viewFootR = (gen ? gen.footR : shapeRadius(s.shape)) * s.mscale;
   return changed;
 }
 
@@ -1858,6 +2199,20 @@ function buildMarkers() {
     }
   }
   for (const [kind, list] of byKind) {
+    const std = [];   // G-535: 生成シェープは地点専用の群へ
+    for (const s of list) {
+      const gen = genShapeOf(s, kind);
+      if (!gen) { std.push(s); continue; }
+      const meshes = gen.parts.map((p) => {
+        const im = new THREE.InstancedMesh(p.geo, toon(p.color), 1);
+        im.castShadow = im.receiveShadow = true; im.frustumCulled = false;
+        scene.add(im);
+        return im;
+      });
+      s.slots.set(kind, 0);
+      markerGroups.push({ kind, form: null, sites: [s], meshes });
+    }
+    if (!std.length) continue;   // tomb（大仙のみ）は空
     const shape = SHAPE_OF[kind] || SHAPE_KEEP;
     const meshes = [];
     for (const part of shape) {
@@ -1872,7 +2227,7 @@ function buildMarkers() {
         geo.rotateY(part.rot);
       }
       geo.translate(part.x || 0, part.y, part.z || 0);
-      const im = new THREE.InstancedMesh(geo, toon(part.color), list.length);
+      const im = new THREE.InstancedMesh(geo, toon(part.color), std.length);
       im.castShadow = true;
       im.receiveShadow = true;
       im.frustumCulled = false;
@@ -1880,8 +2235,8 @@ function buildMarkers() {
       meshes.push(im);
     }
     // 索引を持たせておく（refreshMarkerMatrices が sites 順に回すため）
-    list.forEach((s, i) => { s.slots.set(kind, i); });
-    const group = { kind, form: null, sites: list, meshes };
+    std.forEach((s, i) => { s.slots.set(kind, i); });
+    const group = { kind, form: null, sites: std, meshes };
     markerGroups.push(group);
     // G-284: モデルが読めた地点はこの群が畳まれ、型ごとの群が受け持つ。読めなければ
     // ここが受け持ち続ける（＝**出荷サイトはモデルが1体も無くても成立する**）。
@@ -2369,6 +2724,8 @@ function initUI() {
   $('langbtn').addEventListener('click', toggleLang);
   $('resetbtn').addEventListener('click', exitZoom);
   $('card-close').addEventListener('click', exitZoom);
+  // G-429: copyViewLink は自身で成否を握る（reject しない）ので戻り値は捨ててよい。
+  $('sharebtn').addEventListener('click', copyViewLink);
   // H-2: 「戻す」はカードを閉じること（退避しているのは #card.open の間だけなので、
   // 閉じれば要約文と近道が自分で戻る。戻す専用の状態は持たない）。
   $('era-restore').addEventListener('click', exitZoom);
@@ -2458,6 +2815,10 @@ function setEra(i, silent = false) {
   renderChips(list);
   renderCard();
   if (!silent) state.lastInput = performance.now();
+  // 時代が変わったらURLへ書き戻す（スライダー・時代ボタン・自動再生の送りも追従）。
+  // **起動時の復元中は urlSyncReady=false なので syncViewUrl 自身が黙って何もしない**
+  // ——復元前にURLの ?site= を消さないため。復元が済めば再生でも URL が時代を追う。
+  syncViewUrl();
 }
 
 function renderChips(list) {
@@ -2497,6 +2858,7 @@ function selectSite(id, fly) {
   renderCard();
   renderChips(SITES.filter((s) => siteInEra(s, ERAS[state.eraIndex].id)));
   if (fly) zoomTo(id);
+  syncViewUrl();   // 選んだ地点をURLへ（共有/ブックマークで同じビューが開く・G-428）
 }
 
 function renderCard() {
@@ -2777,7 +3139,7 @@ function renderAttrib() {
   // ライセンスの3層を**名前とリンクで**出す（RINGI-0007 T-3・シノ条件3）。
   // 「© 株式会社DIGIT」だけでは権利者は分かってもライセンスが分からず、
   // 「使ってもらうために公開する」という本件の趣旨と表示が食い違う。
-  put(ja ? '解説文: ' : 'Texts: ', ja ? '© 株式会社DIGIT（CC BY-ND 4.0）' : '© DIGIT Inc. (CC BY-ND 4.0)',
+  put(ja ? '解説文: ' : 'Texts: ', ja ? '© 株式会社DIGIT（CC BY-ND 4.0）' : '© DIGIT (CC BY-ND 4.0)',
       './LICENSE-DATA.md', '　／　');
   put(ja ? 'コード: ' : 'Code: ', 'Apache-2.0', './LICENSE', '');
 }
@@ -2798,6 +3160,13 @@ function applyLang() {
   btn.setAttribute('aria-pressed', String(!ja));
   $('brand-title').textContent = ja ? '日本史ジオラマ' : 'Japan History Diorama';
   $('brand-sub').textContent = ja ? 'JAPAN HISTORY DIORAMA' : '日本史ジオラマ';
+  // G-429: 共有導線の文言（事実のみ・誇張しない）。言語切替で前言語の成否表示は畳む。
+  $('sharebtn').textContent = ja ? 'このビューのリンクをコピー' : 'Copy link to this view';
+  $('sharebtn').setAttribute('aria-label', ja ? 'このビューのリンクをコピー' : 'Copy link to this view');
+  $('share-url').setAttribute('aria-label', ja ? 'このビューのリンク' : 'Link to this view');
+  const shareStatus = $('share-status'), shareUrl = $('share-url');
+  if (shareStatus) { clearTimeout(copyViewLink._t); shareStatus.textContent = ''; shareStatus.dataset.state = ''; }
+  if (shareUrl) shareUrl.hidden = true;
   /* タブに出る名前も切り替える。内部バージョン表記はどちらの面にも出さない（art-direction.md §1）。 */
   document.title = ja ? '日本史ジオラマ — Japan History Diorama'
                       : 'Japan History Diorama — 日本史ジオラマ';
@@ -3140,6 +3509,7 @@ function exitZoom() {
   updateBackBtn();
   if (wasZoomed) applyHome(false);
   state.lastInput = performance.now();
+  syncViewUrl();   // 地点を離れたら ?site= を落とす（既定ビューのURLへ戻す・G-428）
 }
 
 /** 寄っている間だけ、同じボタンを「戻る」に化けさせる（出口を常に見せる）。 */
@@ -3264,21 +3634,13 @@ function onResize(reframe = false) {
 
 /**
  * 画面の上下の「器」の実寸を CSS 変数へ流す。カードはこの2つのあいだにだけ置かれる（G-190）。
- *
  *   --sheet-b   下の時代バーが要求する高さ（モバイルではカードを持ち上げる量）
  *   --tools-b   上の道具（全体表示 / EN）の下端
- *   --topbar-b  上の段（題箋＋道具）**まるごと**の下端
- *
- * `--tools-b` と `--topbar-b` を分けてあるのは、カードがぶつかる相手が幅で変わるから。
- * 広い画面のカードは右端 330px なので、左にある題箋とは決してぶつからず、当たるのは
- * 右上の道具だけ（`--tools-b`）。狭い画面（≤860px）のカードは全幅なので、上の段の
- * **背の高い方**にぶつかる——そこで `--tools-b` を使っていたのが G-195 の覆いだった
- * （題箋 189px / 道具 156px。33px の差がそのまま覆いになる）。
- *
- * どちらも定数で書いてあった。**定数はどちらも実測と食い違っていた**——
- * 時代バーは板の上端 418px に対しカード下端 546px、道具は下端 100.6px に対しカード上端 76px。
- * どちらの高さも中身で変わる（時代の要約文の行数・AI開示バナーの折り返し）ので、
- * 定数では原理的に追随できない。
+ *   --topbar-b  上の段（題箋＋道具）まるごとの下端
+ * `--tools-b` と `--topbar-b` を分けるのは、カードがぶつかる相手が幅で変わるから: 広幅のカードは
+ * 右端 330px で当たるのは道具だけ（`--tools-b`）／狭幅（≤860px）は全幅で上段の**背の高い方**に当たり、
+ * そこで `--tools-b` を使ったのが G-195 の覆いだった（題箋が道具より高い）。どちらの高さも中身
+ * （要約文の行数・バナーの折り返し）で変わるので定数では追随できず、実測して流す。
  */
 function syncChrome() {
   const root = document.documentElement.style;

@@ -7,7 +7,7 @@
 | ファイル | 中身 | ライセンス |
 |---|---|---|
 | `sites.jsonl` | **正本**。30地点（1行1地点） | 下表のとおり**フィールドごと**に ND / BY |
-| `sites.json` | `sites.jsonl` からの生成物（手で編集しない） | 同上 |
+| `sites.json` | `sites.jsonl` からの生成物（手で編集しない）。**画面が読む項目だけ**を持つ——出典の `note`（利用条件の観察）・`criteria`・`location`・`point`・`added`・`id` は正本にのみある | 同上 |
 | `eras.json` | 11時代（手書き） | 同上 |
 | `japan-coast.json` | Natural Earth 1:50m (v5.1.2) の派生 | **パブリックドメイン**（当社ライセンスの対象外） |
 | `dem-japan.png` / `dem-japan.json` | 地理院タイル（標高タイル）の派生 | **国土地理院コンテンツ利用規約による**（当社ライセンスの対象外） |
@@ -48,7 +48,7 @@
 `years_ja` `years_en` `status` `added` `designated_name` `designated` `first_designated`
 `category` `criteria` `notice_no` `first_notice_no` `authority` `name` `location` `point`
 `role` `url` `retrieved` `link_policy` `image` `rights` `sources` `timeline` `meta`
-`written_by`
+`written_by` `ref`
 <!-- BY-FIELDS:END -->
 
 `built_basis` は `"our-anchor"` の1語しか取らない**印**である（当社が置いた起点であることを
@@ -75,6 +75,9 @@
   「このフィールドは事実側だ」という分類であって、**当社が当該文言の権利者だという意味ではない**。
   引用部分の権利は各出典者に帰属する。
 * **`sources[]` は参照であって転載ではない。** 出典先の本文を当社は複製していない。
+* **段（`timeline[].sources[]`）の `{"ref": "<id>"}`** は、同じ地点の `sources[]` で
+  その `id` を持つ出典**そのもの**を指す（正本内の重複を1か所にまとめただけで、
+  出典の情報は増えても減ってもいない）。`sites.json` では展開済みの形で入っている。
 * **`japan-coast.json`** — Natural Earth はパブリックドメイン。当社の加工（間引き・島の選別）に
   ついても権利主張はしない。
 * **`dem-japan.png` / `dem-japan.json`** — 地理院タイル（標高タイル（基盤地図情報数値標高
